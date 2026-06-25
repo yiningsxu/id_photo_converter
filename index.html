@@ -64,6 +64,25 @@
             <span data-i18n="paperPresetLabel">Paper size preset</span>
             <select name="paper_size_preset">
               <option value="">Custom paper size</option>
+              <option value="a4">A4 (8.27 × 11.69 in)</option>
+              <option value="a3">A3 (11.69 × 16.54 in)</option>
+              <option value="a5">A5 (5.83 × 8.27 in)</option>
+              <option value="a6">A6 (4.13 × 5.83 in)</option>
+              <option value="b5">B5 (6.93 × 9.84 in)</option>
+              <option value="b4">B4 (9.84 × 13.9 in)</option>
+              <option value="letter">US Letter (8.5 × 11 in)</option>
+              <option value="legal">US Legal (8.5 × 14 in)</option>
+              <option value="8k">China 8K (about 10.63 × 15.35 in)</option>
+              <option value="16k">China 16K (about 7.68 × 10.63 in)</option>
+              <option value="2r">Wallet / 2R (2.5 × 3.5 in)</option>
+              <option value="3r">3R / 5 in print (3.5 × 5 in)</option>
+              <option value="4r">4R / 6 in print (4 × 6 in)</option>
+              <option value="5r">5R / 7 in print (5 × 7 in)</option>
+              <option value="6r">6R / 8 in print (6 × 8 in)</option>
+              <option value="8r">8R / 10 in print (8 × 10 in)</option>
+              <option value="10r">10R / 12 in print (10 × 12 in)</option>
+              <option value="a4-photo">A4 photo paper (8.27 × 11.69 in)</option>
+              <option value="a3-photo">A3 photo paper (11.69 × 16.54 in)</option>
             </select>
           </label>
           <div class="row">
@@ -754,12 +773,20 @@
       const isApproximate = isEnglish ? Boolean(preset.approximateIn) : Boolean(preset.approximateMm);
       const prefix = isApproximate ? `${t('approxPrefix')} ` : '';
       if (isEnglish) {
-        const widthIn = preset.widthIn ?? preset.widthMm / MM_PER_INCH;
-        const heightIn = preset.heightIn ?? preset.heightMm / MM_PER_INCH;
+        const widthIn = Object.prototype.hasOwnProperty.call(preset, 'widthIn')
+          ? preset.widthIn
+          : preset.widthMm / MM_PER_INCH;
+        const heightIn = Object.prototype.hasOwnProperty.call(preset, 'heightIn')
+          ? preset.heightIn
+          : preset.heightMm / MM_PER_INCH;
         return `${prefix}${formatInches(widthIn)} × ${formatInches(heightIn)} in`;
       }
-      const widthMm = preset.displayWidthMm ?? preset.widthMm;
-      const heightMm = preset.displayHeightMm ?? preset.heightMm;
+      const widthMm = Object.prototype.hasOwnProperty.call(preset, 'displayWidthMm')
+        ? preset.displayWidthMm
+        : preset.widthMm;
+      const heightMm = Object.prototype.hasOwnProperty.call(preset, 'displayHeightMm')
+        ? preset.displayHeightMm
+        : preset.heightMm;
       return `${prefix}${formatMm(widthMm)} × ${formatMm(heightMm)} mm`;
     }
 
@@ -790,20 +817,21 @@
 
     function renderPaperPresetOptions() {
       const selectedValue = paperPresetSelect.value;
-      paperPresetSelect.innerHTML = '';
+      const fragment = document.createDocumentFragment();
 
       const placeholder = document.createElement('option');
       placeholder.value = '';
       placeholder.textContent = t('paperPresetCustom');
-      paperPresetSelect.appendChild(placeholder);
+      fragment.appendChild(placeholder);
 
       PAPER_SIZE_PRESETS.forEach((preset) => {
         const option = document.createElement('option');
         option.value = preset.id;
         option.textContent = getPaperPresetLabel(preset);
-        paperPresetSelect.appendChild(option);
+        fragment.appendChild(option);
       });
 
+      paperPresetSelect.replaceChildren(fragment);
       if (Array.from(paperPresetSelect.options).some((option) => option.value === selectedValue)) {
         paperPresetSelect.value = selectedValue;
       }
