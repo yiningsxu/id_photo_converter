@@ -19,10 +19,12 @@ body {
 }
 
 .hero {
+  position: relative;
   display: flex;
   gap: 24px;
   justify-content: space-between;
   align-items: flex-start;
+  padding-right: 190px;
   margin-bottom: 20px;
 }
 
@@ -126,11 +128,6 @@ select {
   margin-bottom: 12px;
 }
 
-.language-field {
-  width: min(240px, 100%);
-  margin-top: 16px;
-}
-
 select {
   min-height: 46px;
 }
@@ -188,6 +185,41 @@ button:disabled {
 
 .button.secondary {
   background: #e9eef8;
+  color: #16346e;
+}
+
+.language-switch {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #d8dee7;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 8px 22px rgba(24, 32, 42, 0.05);
+}
+
+.language-switch button {
+  min-width: auto;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: #384452;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.language-switch button.is-active {
+  background: #1e5bff;
+  color: white;
+}
+
+.language-switch button:not(.is-active):hover {
+  background: #eef3ff;
   color: #16346e;
 }
 
@@ -264,6 +296,8 @@ button:disabled {
 
   .hero {
     display: grid;
+    padding-top: 52px;
+    padding-right: 0;
   }
 
   .dl-row {

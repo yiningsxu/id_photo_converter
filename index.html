@@ -12,14 +12,11 @@
       <div>
         <h1 data-i18n="appTitle">ID Photo Print Layout Converter</h1>
         <p data-i18n="heroTip">Upload an ID photo, auto-detect or choose the finished size, crop and lay it out in your browser, then download printable PNG, JPG/JPEG, TIFF, or PDF files. All processing stays local in your browser. When printing the PDF, choose “Actual size / 100%”.</p>
-        <label class="field language-field">
-          <span data-i18n="languageLabel">Language</span>
-          <select id="languageSelect" aria-label="Language">
-            <option value="en">English</option>
-            <option value="zh">中文</option>
-            <option value="ja">日本語</option>
-          </select>
-        </label>
+      </div>
+      <div class="language-switch" aria-label="Language">
+        <button type="button" class="is-active" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+        <button type="button" data-lang="ja" aria-pressed="false">日本語</button>
       </div>
     </section>
 
@@ -433,7 +430,7 @@
     const jpgLink = document.getElementById('jpgLink');
     const tiffLink = document.getElementById('tiffLink');
     const pdfLink = document.getElementById('pdfLink');
-    const languageSelect = document.getElementById('languageSelect');
+    const languageButtons = document.querySelectorAll('.language-switch button[data-lang]');
     const photoInput = form.elements.photo;
     const autoSizeInput = form.elements.auto_detect_photo_size;
     const photoPresetSelect = form.elements.photo_size_preset;
@@ -497,6 +494,11 @@
       if (statusEl.dataset.statusKey) {
         statusEl.textContent = t(statusEl.dataset.statusKey);
       }
+      languageButtons.forEach((button) => {
+        const isActive = button.dataset.lang === currentLang;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
       renderPresetOptions();
     }
 
@@ -1474,10 +1476,15 @@
       }
     }
 
-    languageSelect.addEventListener('change', () => {
-      currentLang = languageSelect.value;
-      translatePage();
-      refreshLocalizedState();
+    languageButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (currentLang === button.dataset.lang) {
+          return;
+        }
+        currentLang = button.dataset.lang;
+        translatePage();
+        refreshLocalizedState();
+      });
     });
 
     photoInput.addEventListener('change', detectPhotoSizeForUpload);
