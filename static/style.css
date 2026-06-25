@@ -126,6 +126,11 @@ select {
   margin-bottom: 12px;
 }
 
+.language-field {
+  width: min(240px, 100%);
+  margin-top: 16px;
+}
+
 select {
   min-height: 46px;
 }

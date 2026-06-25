@@ -147,13 +147,279 @@
   <script>
     const MM_PER_INCH = 25.4;
     const COMMON_PRINT_DPIS = [300, 350, 600];
+    const TRANSLATIONS = {
+      en: {
+        appTitle: 'ID Photo Print Layout Converter',
+        heroTip: 'Upload an ID photo, auto-detect or choose the finished size, crop and lay it out in your browser, then download printable PNG, JPG/JPEG, TIFF, or PDF files. All processing stays local in your browser. When printing the PDF, choose “Actual size / 100%”.',
+        languageLabel: 'Language',
+        uploadPhoto: 'Upload ID photo',
+        formatSupport: 'Supports browser-decodable JPEG/JPG, PNG, WebP, BMP, TIFF, GIF, and HEIC/HEIF.',
+        finishedSize: 'Finished photo size',
+        autoDetect: 'Auto-detect uploaded photo size',
+        presetLabel: 'Common size preset',
+        presetCustom: 'Auto-detect / custom input',
+        widthMm: 'Width mm',
+        heightMm: 'Height mm',
+        paperSize: 'Print paper size',
+        printSettings: 'Print settings',
+        marginMm: 'Margin mm',
+        gapMm: 'Photo gap mm',
+        cropPosition: 'Crop position',
+        anchorX: 'Horizontal crop center',
+        anchorY: 'Vertical crop center',
+        layoutOptions: 'Layout options',
+        autoPaperOrientation: 'Auto-select paper orientation',
+        allowPhotoRotation: 'Allow each ID photo to rotate 90° on the sheet to fit more copies',
+        drawCutMarks: 'Show cut border',
+        generatePreview: 'Generate preview',
+        processing: 'Processing...',
+        layoutResult: 'Layout result',
+        downloadPng: 'Download PNG',
+        downloadJpg: 'Download JPG/JPEG',
+        downloadTiff: 'Download TIFF',
+        downloadPdf: 'Download PDF',
+        croppedPreviewTitle: 'Cropped ID photo preview',
+        layoutPreviewTitle: 'Print sheet layout preview',
+        waitingUpload: 'Waiting for an uploaded image.',
+        manualFinishedSize: 'Using manual finished size.',
+        customFinishedSize: 'Using custom finished size.',
+        detecting: 'Detecting finished size...',
+        unableDetectChoose: 'Could not reliably detect the finished size. Please choose a preset or enter width and height manually.',
+        unableDetectUsingForm: 'Could not reliably detect the finished size. Using the size currently in the form.',
+        detectedFromDpi: 'Detected from image DPI metadata as {label}.',
+        detectedFromPixels: 'Detected from pixel dimensions as {label}.',
+        detectedFromAspect: 'Detected from aspect ratio as {label}.',
+        customSizeLabel: 'Custom size ({size})',
+        detectedStatus: 'Detected: {label} ({confidence}{dpi})',
+        highConfidence: 'high confidence',
+        mediumConfidence: 'medium confidence',
+        approxDpi: ', about {dpi} DPI',
+        selectedPreset: 'Preset selected: {label}',
+        presetSource: 'Preset: {label}',
+        manualInput: 'Manual input',
+        yes: 'Yes',
+        no: 'No',
+        noLayout: 'The current photo size, paper size, margin, and gap cannot fit even one ID photo.',
+        imageReadError: 'The browser could not read this image. Try JPEG, PNG, WebP, BMP, TIFF, GIF, or a browser that supports HEIC/HEIF.',
+        blobError: 'Could not generate the download file.',
+        positiveNumber: '{field} must be greater than 0.',
+        nonNegativeNumber: '{field} cannot be less than 0.',
+        integerRequired: '{field} must be an integer.',
+        dpiRange: 'DPI should be between 72 and 1200.',
+        marginTooLarge: 'The margin is too large for the usable paper area.',
+        uploadRequired: 'Please upload an ID photo first.',
+        generating: 'Generating cropped photo and print layout...',
+        done: 'Done.',
+        photoWidth: 'ID photo width',
+        photoHeight: 'ID photo height',
+        paperWidth: 'print paper width',
+        paperHeight: 'print paper height',
+        margin: 'margin',
+        gap: 'photo gap',
+        originalPixels: 'Original pixels',
+        croppedPixels: 'Cropped pixels',
+        finishedSizeSummary: 'Finished size',
+        sizeSource: 'Size source',
+        outputDpi: 'Output DPI',
+        singlePrintPixels: 'Single print pixels',
+        paperPixels: 'Paper pixels',
+        bestLayout: 'Best layout',
+        copiesText: '{grid}, {count} copies',
+        outputPaperSize: 'Output paper size',
+        paperSwapped: 'Paper orientation swapped',
+        photoRotated: 'Single photo rotated',
+        cropBox: 'Crop box px',
+        preset35x45: '35x45 mm - Japan passport/My Number, South Korea passport/resident registration card, Taiwan passport/ID card, most European IDs (France/Germany/Italy, etc.)',
+        preset51x51: '51x51 mm - US passport/visa/DV/USCIS common photo',
+        preset33x48: '33x48 mm - Mainland China passport/travel document/Chinese visa',
+        preset30x40: '30x40 mm - Japan residence card/immigration submission photo',
+        preset24x30: '24x30 mm - Japan driver license',
+        preset26x32: '26x32 mm - Mainland China resident ID card, Spain DNI/passport common portrait format'
+      },
+      zh: {
+        appTitle: '证件照打印排版转换器',
+        heroTip: '上传一张证件照，在浏览器里自动识别或选择成品尺寸，完成裁剪、排版，并下载可打印 PNG、JPG/JPEG、TIFF、PDF。所有处理都在浏览器本地完成。下载 PDF 后请使用“实际大小 / 100%”打印。',
+        languageLabel: '界面语言',
+        uploadPhoto: '上传证件照',
+        formatSupport: '支持浏览器可解码的 JPEG/JPG、PNG、WebP、BMP、TIFF、GIF、HEIC/HEIF。',
+        finishedSize: '证件照成品尺寸',
+        autoDetect: '自动识别上传图尺寸',
+        presetLabel: '常用规格预设',
+        presetCustom: '自动识别 / 自定义输入',
+        widthMm: '宽度 mm',
+        heightMm: '高度 mm',
+        paperSize: '打印纸尺寸',
+        printSettings: '打印参数',
+        marginMm: '页边距 mm',
+        gapMm: '照片间距 mm',
+        cropPosition: '裁剪位置',
+        anchorX: '水平裁剪中心',
+        anchorY: '垂直裁剪中心',
+        layoutOptions: '排版选项',
+        autoPaperOrientation: '自动选择纸张横竖方向',
+        allowPhotoRotation: '允许单张证件照在纸上旋转 90° 以容纳更多张',
+        drawCutMarks: '显示裁切边框',
+        generatePreview: '生成预览',
+        processing: '处理中...',
+        layoutResult: '排版结果',
+        downloadPng: '下载 PNG',
+        downloadJpg: '下载 JPG/JPEG',
+        downloadTiff: '下载 TIFF',
+        downloadPdf: '下载 PDF',
+        croppedPreviewTitle: '裁剪后证件照预览',
+        layoutPreviewTitle: '打印纸排版预览',
+        waitingUpload: '等待上传图片。',
+        manualFinishedSize: '已使用手动成品尺寸。',
+        customFinishedSize: '已使用自定义成品尺寸。',
+        detecting: '正在识别成品尺寸...',
+        unableDetectChoose: '未能可靠识别成品尺寸，请选择预设或手动输入宽度和高度。',
+        unableDetectUsingForm: '未能可靠识别成品尺寸，已使用表单中的尺寸。',
+        detectedFromDpi: '已根据图片 DPI 元数据识别为 {label}。',
+        detectedFromPixels: '已根据像素尺寸识别为 {label}。',
+        detectedFromAspect: '已根据长宽比识别为 {label}。',
+        customSizeLabel: '自定义尺寸（{size}）',
+        detectedStatus: '已识别：{label}（{confidence}{dpi}）',
+        highConfidence: '高置信度',
+        mediumConfidence: '中等置信度',
+        approxDpi: '，约 {dpi} DPI',
+        selectedPreset: '已选择预设：{label}',
+        presetSource: '预设：{label}',
+        manualInput: '手动输入',
+        yes: '是',
+        no: '否',
+        noLayout: '当前照片尺寸、纸张尺寸、页边距和间距无法排下任何一张证件照。',
+        imageReadError: '浏览器无法读取这张图片。请换成 JPEG、PNG、WebP、BMP、TIFF、GIF，或使用支持 HEIC/HEIF 的浏览器。',
+        blobError: '无法生成下载文件。',
+        positiveNumber: '{field} 必须大于 0。',
+        nonNegativeNumber: '{field} 不能小于 0。',
+        integerRequired: '{field} 必须是整数。',
+        dpiRange: 'DPI 建议设置在 72 到 1200 之间。',
+        marginTooLarge: '页边距过大，已经超过纸张可用区域。',
+        uploadRequired: '请先上传一张证件照。',
+        generating: '正在生成裁剪图和打印排版...',
+        done: '已生成。',
+        photoWidth: '证件照宽度',
+        photoHeight: '证件照高度',
+        paperWidth: '打印纸宽度',
+        paperHeight: '打印纸高度',
+        margin: '页边距',
+        gap: '照片间距',
+        originalPixels: '原图像素',
+        croppedPixels: '裁剪后像素',
+        finishedSizeSummary: '成品尺寸',
+        sizeSource: '尺寸来源',
+        outputDpi: '输出 DPI',
+        singlePrintPixels: '单张打印像素',
+        paperPixels: '打印纸像素',
+        bestLayout: '最佳排版',
+        copiesText: '{grid}，共 {count} 张',
+        outputPaperSize: '输出纸张尺寸',
+        paperSwapped: '纸张方向是否交换',
+        photoRotated: '单张照片是否旋转',
+        cropBox: '裁剪框 px',
+        preset35x45: '35x45 mm - 日本护照/My Number、韩国护照/居民登记证、台湾护照/身分证、法国/德国/意大利等多数欧洲证件',
+        preset51x51: '51x51 mm - 美国护照/签证/DV/USCIS常见照片',
+        preset33x48: '33x48 mm - 中国大陆护照/旅行证/中国签证',
+        preset30x40: '30x40 mm - 日本在留卡/入管提交照',
+        preset24x30: '24x30 mm - 日本驾照',
+        preset26x32: '26x32 mm - 中国大陆居民身份证、西班牙DNI/护照常用竖版'
+      },
+      ja: {
+        appTitle: '証明写真プリントレイアウト変換ツール',
+        heroTip: '証明写真をアップロードし、仕上がりサイズを自動検出または選択して、ブラウザ内でトリミングとレイアウトを行い、印刷用の PNG、JPG/JPEG、TIFF、PDF をダウンロードできます。すべての処理はブラウザ内で完結します。PDF を印刷するときは「実際のサイズ / 100%」を選択してください。',
+        languageLabel: '表示言語',
+        uploadPhoto: '証明写真をアップロード',
+        formatSupport: 'ブラウザで読み込める JPEG/JPG、PNG、WebP、BMP、TIFF、GIF、HEIC/HEIF に対応しています。',
+        finishedSize: '証明写真の仕上がりサイズ',
+        autoDetect: 'アップロード画像のサイズを自動検出',
+        presetLabel: 'よく使うサイズ',
+        presetCustom: '自動検出 / カスタム入力',
+        widthMm: '幅 mm',
+        heightMm: '高さ mm',
+        paperSize: '印刷用紙サイズ',
+        printSettings: '印刷設定',
+        marginMm: '余白 mm',
+        gapMm: '写真間隔 mm',
+        cropPosition: 'トリミング位置',
+        anchorX: '水平トリミング中心',
+        anchorY: '垂直トリミング中心',
+        layoutOptions: 'レイアウト設定',
+        autoPaperOrientation: '用紙の縦横を自動選択',
+        allowPhotoRotation: 'より多く配置するために写真を 90° 回転する',
+        drawCutMarks: 'カット用の枠線を表示',
+        generatePreview: 'プレビューを生成',
+        processing: '処理中...',
+        layoutResult: 'レイアウト結果',
+        downloadPng: 'PNG をダウンロード',
+        downloadJpg: 'JPG/JPEG をダウンロード',
+        downloadTiff: 'TIFF をダウンロード',
+        downloadPdf: 'PDF をダウンロード',
+        croppedPreviewTitle: 'トリミング後の証明写真プレビュー',
+        layoutPreviewTitle: '印刷用紙レイアウトプレビュー',
+        waitingUpload: '画像のアップロード待ちです。',
+        manualFinishedSize: '手動入力の仕上がりサイズを使用しています。',
+        customFinishedSize: 'カスタム仕上がりサイズを使用しています。',
+        detecting: '仕上がりサイズを検出しています...',
+        unableDetectChoose: '仕上がりサイズを確実に検出できませんでした。プリセットを選ぶか、幅と高さを手動で入力してください。',
+        unableDetectUsingForm: '仕上がりサイズを確実に検出できませんでした。フォームのサイズを使用します。',
+        detectedFromDpi: '画像の DPI メタデータから {label} として検出しました。',
+        detectedFromPixels: 'ピクセル寸法から {label} として検出しました。',
+        detectedFromAspect: '縦横比から {label} として検出しました。',
+        customSizeLabel: 'カスタムサイズ（{size}）',
+        detectedStatus: '検出結果：{label}（{confidence}{dpi}）',
+        highConfidence: '高信頼度',
+        mediumConfidence: '中信頼度',
+        approxDpi: '、約 {dpi} DPI',
+        selectedPreset: '選択中のプリセット：{label}',
+        presetSource: 'プリセット：{label}',
+        manualInput: '手動入力',
+        yes: 'はい',
+        no: 'いいえ',
+        noLayout: '現在の写真サイズ、用紙サイズ、余白、間隔では証明写真を 1 枚も配置できません。',
+        imageReadError: 'ブラウザがこの画像を読み込めませんでした。JPEG、PNG、WebP、BMP、TIFF、GIF、または HEIC/HEIF 対応ブラウザを使用してください。',
+        blobError: 'ダウンロードファイルを生成できませんでした。',
+        positiveNumber: '{field} は 0 より大きい値にしてください。',
+        nonNegativeNumber: '{field} は 0 以上にしてください。',
+        integerRequired: '{field} は整数にしてください。',
+        dpiRange: 'DPI は 72 から 1200 の範囲を推奨します。',
+        marginTooLarge: '余白が大きすぎて、用紙の使用可能範囲を超えています。',
+        uploadRequired: '先に証明写真をアップロードしてください。',
+        generating: 'トリミング画像と印刷レイアウトを生成しています...',
+        done: '生成しました。',
+        photoWidth: '証明写真の幅',
+        photoHeight: '証明写真の高さ',
+        paperWidth: '用紙の幅',
+        paperHeight: '用紙の高さ',
+        margin: '余白',
+        gap: '写真間隔',
+        originalPixels: '元画像ピクセル',
+        croppedPixels: 'トリミング後ピクセル',
+        finishedSizeSummary: '仕上がりサイズ',
+        sizeSource: 'サイズの取得元',
+        outputDpi: '出力 DPI',
+        singlePrintPixels: '1 枚あたりの印刷ピクセル',
+        paperPixels: '用紙ピクセル',
+        bestLayout: '最適レイアウト',
+        copiesText: '{grid}、合計 {count} 枚',
+        outputPaperSize: '出力用紙サイズ',
+        paperSwapped: '用紙の向きを入れ替え',
+        photoRotated: '写真を回転',
+        cropBox: 'トリミング範囲 px',
+        preset35x45: '35x45 mm - 日本パスポート/My Number、韓国パスポート/住民登録証、台湾パスポート/身分証、フランス/ドイツ/イタリアなど欧州の多くの証明写真',
+        preset51x51: '51x51 mm - 米国パスポート/ビザ/DV/USCIS 向け写真',
+        preset33x48: '33x48 mm - 中国大陸パスポート/旅行証/中国ビザ',
+        preset30x40: '30x40 mm - 日本在留カード/入管提出用写真',
+        preset24x30: '24x30 mm - 日本運転免許証',
+        preset26x32: '26x32 mm - 中国大陸居民身分証、スペイン DNI/パスポート縦型'
+      }
+    };
     const PHOTO_SIZE_PRESETS = [
-      { label: '35x45 mm - 日本护照/My Number、韩国护照/居民登记证、台湾护照/身分证、欧洲多数证件', widthMm: 35, heightMm: 45 },
-      { label: '51x51 mm - 美国护照/签证/DV/USCIS常见照片', widthMm: 51, heightMm: 51 },
-      { label: '33x48 mm - 中国大陆护照/旅行证/中国签证', widthMm: 33, heightMm: 48 },
-      { label: '30x40 mm - 日本在留卡/入管提交照', widthMm: 30, heightMm: 40 },
-      { label: '24x30 mm - 日本驾照', widthMm: 24, heightMm: 30 },
-      { label: '26x32 mm - 中国大陆居民身份证、西班牙DNI/护照常用竖版', widthMm: 26, heightMm: 32 }
+      { labelKey: 'preset35x45', widthMm: 35, heightMm: 45 },
+      { labelKey: 'preset51x51', widthMm: 51, heightMm: 51 },
+      { labelKey: 'preset33x48', widthMm: 33, heightMm: 48 },
+      { labelKey: 'preset30x40', widthMm: 30, heightMm: 40 },
+      { labelKey: 'preset24x30', widthMm: 24, heightMm: 30 },
+      { labelKey: 'preset26x32', widthMm: 26, heightMm: 32 }
     ];
 
     const form = document.getElementById('converterForm');
@@ -167,6 +433,7 @@
     const jpgLink = document.getElementById('jpgLink');
     const tiffLink = document.getElementById('tiffLink');
     const pdfLink = document.getElementById('pdfLink');
+    const languageSelect = document.getElementById('languageSelect');
     const photoInput = form.elements.photo;
     const autoSizeInput = form.elements.auto_detect_photo_size;
     const photoPresetSelect = form.elements.photo_size_preset;
@@ -178,10 +445,60 @@
     let currentFile = null;
     let currentImage = null;
     let currentDpi = null;
+    let currentLang = 'en';
+    let lastResultData = null;
     let pngObjectUrl = null;
     let jpgObjectUrl = null;
     let tiffObjectUrl = null;
     let pdfObjectUrl = null;
+
+    function t(key, vars = {}) {
+      const dictionary = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+      const template = dictionary[key] || TRANSLATIONS.en[key] || key;
+      return template.replace(/\{(\w+)\}/g, (_, name) => (
+        Object.prototype.hasOwnProperty.call(vars, name) ? vars[name] : `{${name}}`
+      ));
+    }
+
+    function getPresetLabel(preset) {
+      return t(preset.labelKey);
+    }
+
+    function renderPresetOptions() {
+      const selectedValue = photoPresetSelect.value;
+      photoPresetSelect.innerHTML = '';
+
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = t('presetCustom');
+      photoPresetSelect.appendChild(placeholder);
+
+      PHOTO_SIZE_PRESETS.forEach((preset) => {
+        const option = document.createElement('option');
+        option.value = `${preset.widthMm},${preset.heightMm}`;
+        option.textContent = getPresetLabel(preset);
+        photoPresetSelect.appendChild(option);
+      });
+
+      if (Array.from(photoPresetSelect.options).some((option) => option.value === selectedValue)) {
+        photoPresetSelect.value = selectedValue;
+      }
+    }
+
+    function translatePage() {
+      document.documentElement.lang = currentLang;
+      document.title = t('appTitle');
+      document.querySelectorAll('[data-i18n]').forEach((element) => {
+        element.textContent = t(element.dataset.i18n);
+      });
+      croppedPreview.setAttribute('aria-label', t('croppedPreviewTitle'));
+      layoutPreview.setAttribute('aria-label', t('layoutPreviewTitle'));
+      submitBtn.textContent = submitBtn.disabled ? t('processing') : t('generatePreview');
+      if (statusEl.dataset.statusKey) {
+        statusEl.textContent = t(statusEl.dataset.statusKey);
+      }
+      renderPresetOptions();
+    }
 
     function bindRange(name, outputId) {
       const input = form.elements[name];
@@ -193,10 +510,11 @@
     bindRange('anchor_x', 'anchorXOut');
     bindRange('anchor_y', 'anchorYOut');
 
-    function setBusy(isBusy, message = '') {
+    function setBusy(isBusy, message = '', statusKey = '') {
       submitBtn.disabled = isBusy;
-      submitBtn.textContent = isBusy ? '处理中...' : '生成预览';
+      submitBtn.textContent = isBusy ? t('processing') : t('generatePreview');
       statusEl.textContent = message;
+      statusEl.dataset.statusKey = statusKey;
     }
 
     function formatMm(value) {
@@ -214,7 +532,7 @@
     function positiveNumber(raw, fieldName) {
       const value = Number(raw);
       if (!Number.isFinite(value) || value <= 0) {
-        throw new Error(`${fieldName} 必须大于 0。`);
+        throw new Error(t('positiveNumber', { field: fieldName }));
       }
       return value;
     }
@@ -222,7 +540,7 @@
     function nonNegativeNumber(raw, fieldName) {
       const value = Number(raw);
       if (!Number.isFinite(value) || value < 0) {
-        throw new Error(`${fieldName} 不能小于 0。`);
+        throw new Error(t('nonNegativeNumber', { field: fieldName }));
       }
       return value;
     }
@@ -230,7 +548,7 @@
     function intNumber(raw, fieldName) {
       const value = Number(raw);
       if (!Number.isInteger(value)) {
-        throw new Error(`${fieldName} 必须是整数。`);
+        throw new Error(t('integerRequired', { field: fieldName }));
       }
       return value;
     }
@@ -424,7 +742,7 @@
         };
         image.onerror = () => {
           URL.revokeObjectURL(url);
-          reject(new Error('浏览器无法读取这张图片。请换成 JPEG、PNG、WebP、BMP、TIFF、GIF，或使用支持 HEIC/HEIF 的浏览器。'));
+          reject(new Error(t('imageReadError')));
         };
         image.src = url;
       });
@@ -456,7 +774,7 @@
     }
 
     function detectedLabel(preset, widthMm, heightMm) {
-      return `${preset.label}（${formatMm(widthMm)} x ${formatMm(heightMm)} mm）`;
+      return `${getPresetLabel(preset)} (${formatMm(widthMm)} x ${formatMm(heightMm)} mm)`;
     }
 
     function nearestPresetByMm(widthMm, heightMm) {
@@ -501,13 +819,16 @@
           confidence: 'high',
           estimatedDpi,
           source: dpi.source,
-          message: `已根据图片 DPI 元数据识别为 ${label}。`
+          labelKey: nearest.preset.labelKey,
+          message: t('detectedFromDpi', { label })
         };
       }
 
       const measuredWidthMm = Math.round(widthMm * 10) / 10;
       const measuredHeightMm = Math.round(heightMm * 10) / 10;
-      const label = `自定义尺寸（${formatMm(measuredWidthMm)} x ${formatMm(measuredHeightMm)} mm）`;
+      const label = t('customSizeLabel', {
+        size: `${formatMm(measuredWidthMm)} x ${formatMm(measuredHeightMm)} mm`
+      });
       return {
         widthMm: measuredWidthMm,
         heightMm: measuredHeightMm,
@@ -515,7 +836,8 @@
         confidence: 'medium',
         estimatedDpi,
         source: dpi.source,
-        message: `已根据图片 DPI 元数据识别为 ${label}。`
+        isCustom: true,
+        message: t('detectedFromDpi', { label })
       };
     }
 
@@ -532,7 +854,7 @@
         const targetRatio = candidate.widthMm / candidate.heightMm;
         const ratioError = Math.abs(sourceRatio - targetRatio) / targetRatio;
         if (ratioError <= 0.008) {
-          ratioMatches.push(`${candidate.preset.label}-${ratioKey(candidate.widthMm, candidate.heightMm)}`);
+          ratioMatches.push(`${candidate.preset.labelKey}-${ratioKey(candidate.widthMm, candidate.heightMm)}`);
         }
 
         const estimatedDpiX = image.naturalWidth * MM_PER_INCH / candidate.widthMm;
@@ -580,7 +902,8 @@
           confidence: 'high',
           estimatedDpi: best.estimatedDpi,
           source: 'pixel_match',
-          message: `已根据像素尺寸识别为 ${label}。`
+          labelKey: best.preset.labelKey,
+          message: t('detectedFromPixels', { label })
         };
       }
 
@@ -598,7 +921,8 @@
           confidence: 'medium',
           estimatedDpi: best.estimatedDpi,
           source: 'aspect_ratio',
-          message: `已根据长宽比识别为 ${label}。`
+          labelKey: best.preset.labelKey,
+          message: t('detectedFromAspect', { label })
         };
       }
       return null;
@@ -626,33 +950,49 @@
       photoPresetSelect.value = match ? match.value : '';
     }
 
+    function detectedDisplayLabel(size) {
+      if (size.labelKey) {
+        return `${t(size.labelKey)} (${formatMm(size.widthMm)} x ${formatMm(size.heightMm)} mm)`;
+      }
+      if (size.isCustom) {
+        return t('customSizeLabel', {
+          size: `${formatMm(size.widthMm)} x ${formatMm(size.heightMm)} mm`
+        });
+      }
+      return size.label;
+    }
+
     function applyDetectedSize(size) {
       applySizeValues(size.widthMm, size.heightMm);
       syncPresetSelect(size.widthMm, size.heightMm);
-      const dpiText = size.estimatedDpi ? `，约 ${Math.round(size.estimatedDpi * 10) / 10} DPI` : '';
-      const confidenceText = size.confidence === 'high' ? '高置信度' : '中等置信度';
-      sizeStatus.textContent = `已识别：${size.label}（${confidenceText}${dpiText}）`;
+      const dpiText = size.estimatedDpi ? t('approxDpi', { dpi: Math.round(size.estimatedDpi * 10) / 10 }) : '';
+      const confidenceText = size.confidence === 'high' ? t('highConfidence') : t('mediumConfidence');
+      sizeStatus.textContent = t('detectedStatus', {
+        label: detectedDisplayLabel(size),
+        confidence: confidenceText,
+        dpi: dpiText
+      });
     }
 
     async function detectPhotoSizeForUpload() {
       const file = photoInput.files[0];
       if (!file) {
-        sizeStatus.textContent = '等待上传图片。';
+        sizeStatus.textContent = t('waitingUpload');
         return;
       }
       if (!autoSizeInput.checked) {
-        sizeStatus.textContent = '已使用手动成品尺寸。';
+        sizeStatus.textContent = t('manualFinishedSize');
         return;
       }
 
-      sizeStatus.textContent = '正在识别成品尺寸...';
+      sizeStatus.textContent = t('detecting');
       try {
         const { image, dpi } = await prepareImage(file);
         const detected = detectPhotoSize(image, dpi);
         if (detected) {
           applyDetectedSize(detected);
         } else {
-          sizeStatus.textContent = '未能可靠识别成品尺寸，请选择预设或手动输入宽度和高度。';
+          sizeStatus.textContent = t('unableDetectChoose');
         }
       } catch (error) {
         sizeStatus.textContent = error.message;
@@ -759,7 +1099,7 @@
       });
 
       if (!candidates.length) {
-        throw new Error('当前照片尺寸、纸张尺寸、页边距和间距无法排下任何一张证件照。');
+        throw new Error(t('noLayout'));
       }
 
       candidates.sort((a, b) => (
@@ -883,7 +1223,7 @@
           if (blob) {
             resolve(blob);
           } else {
-            reject(new Error('无法生成下载文件。'));
+            reject(new Error(t('blobError')));
           }
         }, type, quality);
       });
@@ -1055,21 +1395,21 @@
     function writeSummary(data) {
       const plan = data.plan;
       const sizeSource = data.detected
-        ? data.detected.label
-        : (photoPresetSelect.value ? `预设：${photoPresetSelect.selectedOptions[0].textContent}` : '手动输入');
+        ? detectedDisplayLabel(data.detected)
+        : (photoPresetSelect.value ? t('presetSource', { label: photoPresetSelect.selectedOptions[0].textContent }) : t('manualInput'));
       const rows = [
-        ['原图像素', `${data.image.naturalWidth} x ${data.image.naturalHeight}`],
-        ['裁剪后像素', `${data.croppedCanvas.width} x ${data.croppedCanvas.height}`],
-        ['成品尺寸', `${formatMm(plan.target_photo_w_mm)} mm × ${formatMm(plan.target_photo_h_mm)} mm`],
-        ['尺寸来源', sizeSource],
-        ['输出 DPI', plan.dpi],
-        ['单张打印像素', `${plan.photo_unrotated_w_px} x ${plan.photo_unrotated_h_px}`],
-        ['打印纸像素', `${plan.paper_w_px} x ${plan.paper_h_px}`],
-        ['最佳排版', `${plan.cols} x ${plan.rows}，共 ${plan.count} 张`],
-        ['输出纸张尺寸', `${formatMm(plan.paper_w_mm)} mm × ${formatMm(plan.paper_h_mm)} mm`],
-        ['纸张方向是否交换', plan.paper_orientation_swapped ? '是' : '否'],
-        ['单张照片是否旋转', plan.photo_rotated_on_sheet ? '是' : '否'],
-        ['裁剪框 px', data.cropBox.join(', ')]
+        [t('originalPixels'), `${data.image.naturalWidth} x ${data.image.naturalHeight}`],
+        [t('croppedPixels'), `${data.croppedCanvas.width} x ${data.croppedCanvas.height}`],
+        [t('finishedSizeSummary'), `${formatMm(plan.target_photo_w_mm)} mm × ${formatMm(plan.target_photo_h_mm)} mm`],
+        [t('sizeSource'), sizeSource],
+        [t('outputDpi'), plan.dpi],
+        [t('singlePrintPixels'), `${plan.photo_unrotated_w_px} x ${plan.photo_unrotated_h_px}`],
+        [t('paperPixels'), `${plan.paper_w_px} x ${plan.paper_h_px}`],
+        [t('bestLayout'), t('copiesText', { grid: `${plan.cols} x ${plan.rows}`, count: plan.count })],
+        [t('outputPaperSize'), `${formatMm(plan.paper_w_mm)} mm × ${formatMm(plan.paper_h_mm)} mm`],
+        [t('paperSwapped'), plan.paper_orientation_swapped ? t('yes') : t('no')],
+        [t('photoRotated'), plan.photo_rotated_on_sheet ? t('yes') : t('no')],
+        [t('cropBox'), data.cropBox.join(', ')]
       ];
       summaryList.innerHTML = rows.map(([key, value]) => `
         <div class="dl-row"><dt>${key}</dt><dd>${value}</dd></div>
@@ -1079,18 +1419,18 @@
     function readParams() {
       const dpi = intNumber(form.elements.dpi.value, 'DPI');
       if (dpi < 72 || dpi > 1200) {
-        throw new Error('DPI 建议设置在 72 到 1200 之间。');
+        throw new Error(t('dpiRange'));
       }
 
-      const photoWidthMm = positiveNumber(photoWidthInput.value, '证件照宽度');
-      const photoHeightMm = positiveNumber(photoHeightInput.value, '证件照高度');
-      const paperWidthMm = positiveNumber(form.elements.paper_w_mm.value, '打印纸宽度');
-      const paperHeightMm = positiveNumber(form.elements.paper_h_mm.value, '打印纸高度');
-      const marginMm = nonNegativeNumber(form.elements.margin_mm.value, '页边距');
-      const gapMm = nonNegativeNumber(form.elements.gap_mm.value, '照片间距');
+      const photoWidthMm = positiveNumber(photoWidthInput.value, t('photoWidth'));
+      const photoHeightMm = positiveNumber(photoHeightInput.value, t('photoHeight'));
+      const paperWidthMm = positiveNumber(form.elements.paper_w_mm.value, t('paperWidth'));
+      const paperHeightMm = positiveNumber(form.elements.paper_h_mm.value, t('paperHeight'));
+      const marginMm = nonNegativeNumber(form.elements.margin_mm.value, t('margin'));
+      const gapMm = nonNegativeNumber(form.elements.gap_mm.value, t('gap'));
 
       if (paperWidthMm <= 2 * marginMm || paperHeightMm <= 2 * marginMm) {
-        throw new Error('页边距过大，已经超过纸张可用区域。');
+        throw new Error(t('marginTooLarge'));
       }
 
       return {
@@ -1109,6 +1449,37 @@
       };
     }
 
+    function refreshLocalizedState() {
+      if (lastResultData) {
+        writeSummary(lastResultData);
+      }
+      if (lastResultData?.detected) {
+        applyDetectedSize(lastResultData.detected);
+        return;
+      }
+      if (photoPresetSelect.value) {
+        sizeStatus.textContent = t('selectedPreset', {
+          label: photoPresetSelect.selectedOptions[0].textContent
+        });
+        return;
+      }
+      if (!photoInput.files[0]) {
+        sizeStatus.textContent = t('waitingUpload');
+        return;
+      }
+      if (autoSizeInput.checked) {
+        detectPhotoSizeForUpload();
+      } else {
+        sizeStatus.textContent = t('manualFinishedSize');
+      }
+    }
+
+    languageSelect.addEventListener('change', () => {
+      currentLang = languageSelect.value;
+      translatePage();
+      refreshLocalizedState();
+    });
+
     photoInput.addEventListener('change', detectPhotoSizeForUpload);
     autoSizeInput.addEventListener('change', () => {
       if (autoSizeInput.checked) {
@@ -1119,13 +1490,13 @@
     photoPresetSelect.addEventListener('change', () => {
       const selectedOption = photoPresetSelect.selectedOptions[0];
       if (!photoPresetSelect.value) {
-        sizeStatus.textContent = autoSizeInput.checked ? '等待上传图片。' : '已使用自定义成品尺寸。';
+        sizeStatus.textContent = autoSizeInput.checked ? t('waitingUpload') : t('customFinishedSize');
         return;
       }
       const [widthMm, heightMm] = photoPresetSelect.value.split(',').map(Number);
       applySizeValues(widthMm, heightMm);
       autoSizeInput.checked = false;
-      sizeStatus.textContent = `已选择预设：${selectedOption.textContent}`;
+      sizeStatus.textContent = t('selectedPreset', { label: selectedOption.textContent });
     });
     [photoWidthInput, photoHeightInput].forEach((input) => {
       input.addEventListener('input', () => {
@@ -1134,7 +1505,7 @@
         }
         photoPresetSelect.value = '';
         autoSizeInput.checked = false;
-        sizeStatus.textContent = '已使用手动成品尺寸。';
+        sizeStatus.textContent = t('manualFinishedSize');
       });
     });
 
@@ -1142,19 +1513,19 @@
       event.preventDefault();
       resultEl.classList.add('hidden');
       revokeDownloadUrls();
-      setBusy(true, '正在生成裁剪图和打印排版...');
+      setBusy(true, t('generating'), 'generating');
 
       try {
         const file = photoInput.files[0];
         if (!file) {
-          throw new Error('请先上传一张证件照。');
+          throw new Error(t('uploadRequired'));
         }
         const { image, dpi } = await prepareImage(file);
         const detected = autoSizeInput.checked ? detectPhotoSize(image, dpi) : null;
         if (detected) {
           applyDetectedSize(detected);
         } else if (autoSizeInput.checked) {
-          sizeStatus.textContent = '未能可靠识别成品尺寸，已使用表单中的尺寸。';
+          sizeStatus.textContent = t('unableDetectUsingForm');
         }
 
         const params = readParams();
@@ -1182,12 +1553,16 @@
         pdfLink.download = `id_photo_sheet_${formatMm(result.plan.paper_w_mm)}x${formatMm(result.plan.paper_h_mm)}mm.pdf`;
 
         writeSummary({ ...result, image, detected });
+        lastResultData = { ...result, image, detected };
         resultEl.classList.remove('hidden');
-        setBusy(false, '已生成。');
+        setBusy(false, t('done'), 'done');
       } catch (error) {
         setBusy(false, error.message);
       }
     });
+
+    translatePage();
+    sizeStatus.textContent = t('waitingUpload');
   </script>
 </body>
 </html>
