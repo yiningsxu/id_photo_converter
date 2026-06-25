@@ -60,13 +60,19 @@
 
         <fieldset>
           <legend data-i18n="paperSize">Print paper size</legend>
+          <label class="field preset-field">
+            <span data-i18n="paperPresetLabel">Paper size preset</span>
+            <select name="paper_size_preset">
+              <option value="">Custom paper size</option>
+            </select>
+          </label>
           <div class="row">
             <label class="field">
-              <span data-i18n="widthMm">Width mm</span>
+              <span data-i18n="paperWidthInput">Width in</span>
               <input type="number" name="paper_w_mm" min="1" step="0.1" value="100" required>
             </label>
             <label class="field">
-              <span data-i18n="heightMm">Height mm</span>
+              <span data-i18n="paperHeightInput">Height in</span>
               <input type="number" name="paper_h_mm" min="1" step="0.1" value="148" required>
             </label>
           </div>
@@ -183,6 +189,10 @@
         widthMm: 'Width mm',
         heightMm: 'Height mm',
         paperSize: 'Print paper size',
+        paperPresetLabel: 'Paper size preset',
+        paperPresetCustom: 'Custom paper size',
+        paperWidthInput: 'Width in',
+        paperHeightInput: 'Height in',
         printSettings: 'Print settings',
         marginMm: 'Margin mm',
         gapMm: 'Photo gap mm',
@@ -264,6 +274,26 @@
         paperSwapped: 'Paper orientation swapped',
         photoRotated: 'Single photo rotated',
         cropBox: 'Crop box px',
+        approxPrefix: 'about',
+        paperA4: 'A4',
+        paperA3: 'A3',
+        paperA5: 'A5',
+        paperA6: 'A6',
+        paperB5: 'B5',
+        paperB4: 'B4',
+        paperLetter: 'US Letter',
+        paperLegal: 'US Legal',
+        paper8K: 'China 8K',
+        paper16K: 'China 16K',
+        paper2R: 'Wallet / 2R',
+        paper3R: '3R / 5 in print',
+        paper4R: '4R / 6 in print',
+        paper5R: '5R / 7 in print',
+        paper6R: '6R / 8 in print',
+        paper8R: '8R / 10 in print',
+        paper10R: '10R / 12 in print',
+        paperA4Photo: 'A4 photo paper',
+        paperA3Photo: 'A3 photo paper',
         preset35x45: '35x45 mm - Japan passport/My Number, South Korea passport/resident registration card, Taiwan passport/ID card, most European IDs (France/Germany/Italy, etc.)',
         preset51x51: '51x51 mm - US passport/visa/DV/USCIS common photo',
         preset33x48: '33x48 mm - Mainland China passport/travel document/Chinese visa',
@@ -284,6 +314,10 @@
         widthMm: '宽度 mm',
         heightMm: '高度 mm',
         paperSize: '打印纸尺寸',
+        paperPresetLabel: '打印纸预设',
+        paperPresetCustom: '自定义纸张尺寸',
+        paperWidthInput: '宽度 mm',
+        paperHeightInput: '高度 mm',
         printSettings: '打印参数',
         marginMm: '页边距 mm',
         gapMm: '照片间距 mm',
@@ -365,6 +399,26 @@
         paperSwapped: '纸张方向是否交换',
         photoRotated: '单张照片是否旋转',
         cropBox: '裁剪框 px',
+        approxPrefix: '约',
+        paperA4: 'A4',
+        paperA3: 'A3',
+        paperA5: 'A5',
+        paperA6: 'A6',
+        paperB5: 'B5',
+        paperB4: 'B4',
+        paperLetter: 'Letter（美式信纸）',
+        paperLegal: 'Legal（美式法律纸）',
+        paper8K: '8K（8开）',
+        paper16K: '16K（16开）',
+        paper2R: '3寸 / 2R',
+        paper3R: '5寸 / 3R',
+        paper4R: '6寸 / 4R',
+        paper5R: '7寸 / 5R',
+        paper6R: '8寸 / 6R',
+        paper8R: '10寸 / 8R',
+        paper10R: '12寸',
+        paperA4Photo: 'A4 相纸',
+        paperA3Photo: 'A3 相纸',
         preset35x45: '35x45 mm - 日本护照/My Number、韩国护照/居民登记证、台湾护照/身分证、法国/德国/意大利等多数欧洲证件',
         preset51x51: '51x51 mm - 美国护照/签证/DV/USCIS常见照片',
         preset33x48: '33x48 mm - 中国大陆护照/旅行证/中国签证',
@@ -385,6 +439,10 @@
         widthMm: '幅 mm',
         heightMm: '高さ mm',
         paperSize: '印刷用紙サイズ',
+        paperPresetLabel: '用紙サイズプリセット',
+        paperPresetCustom: 'カスタム用紙サイズ',
+        paperWidthInput: '幅 mm',
+        paperHeightInput: '高さ mm',
         printSettings: '印刷設定',
         marginMm: '余白 mm',
         gapMm: '写真間隔 mm',
@@ -466,6 +524,26 @@
         paperSwapped: '用紙の向きを入れ替え',
         photoRotated: '写真を回転',
         cropBox: 'トリミング範囲 px',
+        approxPrefix: '約',
+        paperA4: 'A4',
+        paperA3: 'A3',
+        paperA5: 'A5',
+        paperA6: 'A6',
+        paperB5: 'B5',
+        paperB4: 'B4',
+        paperLetter: 'レター',
+        paperLegal: 'リーガル',
+        paper8K: '8K（中国規格）',
+        paper16K: '16K（中国規格）',
+        paper2R: '2R',
+        paper3R: 'L判 / 3R',
+        paper4R: 'KG（はがき）/ 4R',
+        paper5R: '2L判 / 5R',
+        paper6R: '6R',
+        paper8R: '六切 / 8R',
+        paper10R: '10R',
+        paperA4Photo: 'A4 写真用紙',
+        paperA3Photo: 'A3 写真用紙',
         preset35x45: '35x45 mm - 日本パスポート/My Number、韓国パスポート/住民登録証、台湾パスポート/身分証、フランス/ドイツ/イタリアなど欧州の多くの証明写真',
         preset51x51: '51x51 mm - 米国パスポート/ビザ/DV/USCIS 向け写真',
         preset33x48: '33x48 mm - 中国大陸パスポート/旅行証/中国ビザ',
@@ -481,6 +559,117 @@
       { labelKey: 'preset30x40', widthMm: 30, heightMm: 40 },
       { labelKey: 'preset24x30', widthMm: 24, heightMm: 30 },
       { labelKey: 'preset26x32', widthMm: 26, heightMm: 32 }
+    ];
+    const PAPER_SIZE_PRESETS = [
+      { id: 'a4', labelKey: 'paperA4', widthMm: 210, heightMm: 297 },
+      { id: 'a3', labelKey: 'paperA3', widthMm: 297, heightMm: 420 },
+      { id: 'a5', labelKey: 'paperA5', widthMm: 148, heightMm: 210 },
+      { id: 'a6', labelKey: 'paperA6', widthMm: 105, heightMm: 148 },
+      { id: 'b5', labelKey: 'paperB5', widthMm: 176, heightMm: 250 },
+      { id: 'b4', labelKey: 'paperB4', widthMm: 250, heightMm: 353 },
+      {
+        id: 'letter',
+        labelKey: 'paperLetter',
+        widthMm: 8.5 * MM_PER_INCH,
+        heightMm: 11 * MM_PER_INCH,
+        widthIn: 8.5,
+        heightIn: 11,
+        displayWidthMm: 216,
+        displayHeightMm: 279,
+        approximateMm: true
+      },
+      {
+        id: 'legal',
+        labelKey: 'paperLegal',
+        widthMm: 8.5 * MM_PER_INCH,
+        heightMm: 14 * MM_PER_INCH,
+        widthIn: 8.5,
+        heightIn: 14,
+        displayWidthMm: 216,
+        displayHeightMm: 356,
+        approximateMm: true
+      },
+      { id: '8k', labelKey: 'paper8K', widthMm: 270, heightMm: 390, approximateMm: true, approximateIn: true },
+      { id: '16k', labelKey: 'paper16K', widthMm: 195, heightMm: 270, approximateMm: true, approximateIn: true },
+      {
+        id: '2r',
+        labelKey: 'paper2R',
+        widthMm: 2.5 * MM_PER_INCH,
+        heightMm: 3.5 * MM_PER_INCH,
+        widthIn: 2.5,
+        heightIn: 3.5,
+        displayWidthMm: 64,
+        displayHeightMm: 89,
+        approximateMm: true
+      },
+      {
+        id: '3r',
+        labelKey: 'paper3R',
+        widthMm: 3.5 * MM_PER_INCH,
+        heightMm: 5 * MM_PER_INCH,
+        widthIn: 3.5,
+        heightIn: 5,
+        displayWidthMm: 89,
+        displayHeightMm: 127,
+        approximateMm: true
+      },
+      {
+        id: '4r',
+        labelKey: 'paper4R',
+        widthMm: 4 * MM_PER_INCH,
+        heightMm: 6 * MM_PER_INCH,
+        widthIn: 4,
+        heightIn: 6,
+        displayWidthMm: 102,
+        displayHeightMm: 152,
+        approximateMm: true
+      },
+      {
+        id: '5r',
+        labelKey: 'paper5R',
+        widthMm: 5 * MM_PER_INCH,
+        heightMm: 7 * MM_PER_INCH,
+        widthIn: 5,
+        heightIn: 7,
+        displayWidthMm: 127,
+        displayHeightMm: 178,
+        approximateMm: true
+      },
+      {
+        id: '6r',
+        labelKey: 'paper6R',
+        widthMm: 6 * MM_PER_INCH,
+        heightMm: 8 * MM_PER_INCH,
+        widthIn: 6,
+        heightIn: 8,
+        displayWidthMm: 152,
+        displayHeightMm: 203,
+        approximateMm: true
+      },
+      {
+        id: '8r',
+        labelKey: 'paper8R',
+        widthMm: 8 * MM_PER_INCH,
+        heightMm: 10 * MM_PER_INCH,
+        widthIn: 8,
+        heightIn: 10,
+        displayWidthMm: 203,
+        displayHeightMm: 254,
+        approximateMm: true
+      },
+      {
+        id: '10r',
+        labelKey: 'paper10R',
+        widthMm: 10 * MM_PER_INCH,
+        heightMm: 12 * MM_PER_INCH,
+        widthIn: 10,
+        heightIn: 12,
+        displayWidthMm: 254,
+        displayHeightMm: 305,
+        approximateMm: true
+      },
+      { id: 'a4-photo', labelKey: 'paperA4Photo', widthMm: 210, heightMm: 297 },
+      { id: 'a3-photo', labelKey: 'paperA3Photo', widthMm: 297, heightMm: 420 }
     ];
 
     const form = document.getElementById('converterForm');
