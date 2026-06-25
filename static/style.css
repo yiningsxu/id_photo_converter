@@ -47,22 +47,6 @@ p {
   max-width: 760px;
 }
 
-.print-note {
-  width: min(320px, 100%);
-  padding: 16px;
-  border-radius: 14px;
-  background: #101820;
-  color: white;
-  display: grid;
-  gap: 8px;
-  line-height: 1.5;
-}
-
-.print-note span {
-  color: #d7dde4;
-  font-size: 14px;
-}
-
 .panel {
   background: white;
   border: 1px solid #e1e5ea;
