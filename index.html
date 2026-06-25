@@ -132,6 +132,21 @@
         <article class="panel preview-card">
           <h2 data-i18n="croppedPreviewTitle">Cropped ID photo preview</h2>
           <canvas id="croppedPreview" aria-label="Cropped ID photo preview"></canvas>
+          <div class="scale-controls">
+            <div class="scale-display">
+              <span data-i18n="imageScale">Image size in frame</span>
+              <strong><output id="imageScaleOut">100</output>%</strong>
+            </div>
+            <div class="scale-stepper" role="group" aria-label="Image size in frame">
+              <button type="button" id="scaleDownBtn" class="icon-button" aria-label="Smaller" title="Smaller">-</button>
+              <input type="range" id="imageScaleRange" min="50" max="150" step="1" value="100">
+              <button type="button" id="scaleUpBtn" class="icon-button" aria-label="Larger" title="Larger">+</button>
+            </div>
+            <div class="scale-actions">
+              <button type="button" id="scaleResetBtn" class="secondary" data-i18n="resetScale">Reset 100%</button>
+              <button type="button" id="scaleConfirmBtn" data-i18n="confirmAdjustment">Confirm adjustment</button>
+            </div>
+          </div>
         </article>
         <article class="panel preview-card">
           <h2 data-i18n="layoutPreviewTitle">Print sheet layout preview</h2>
@@ -175,8 +190,14 @@
         downloadJpg: 'Download JPG/JPEG',
         downloadTiff: 'Download TIFF',
         downloadPdf: 'Download PDF',
-        croppedPreviewTitle: 'Cropped ID photo preview',
+        croppedPreviewTitle: 'Single ID photo preview',
         layoutPreviewTitle: 'Print sheet layout preview',
+        imageScale: 'Image size in frame',
+        scaleDown: 'Make image smaller',
+        scaleUp: 'Make image larger',
+        resetScale: 'Reset 100%',
+        confirmAdjustment: 'Confirm adjustment',
+        scalePending: 'Adjustment pending.',
         waitingUpload: 'Waiting for an uploaded image.',
         manualFinishedSize: 'Using manual finished size.',
         customFinishedSize: 'Using custom finished size.',
@@ -219,6 +240,7 @@
         sizeSource: 'Size source',
         outputDpi: 'Output DPI',
         singlePrintPixels: 'Single print pixels',
+        imageScaleSummary: 'Image scale',
         paperPixels: 'Paper pixels',
         bestLayout: 'Best layout',
         copiesText: '{grid}, {count} copies',
@@ -263,8 +285,14 @@
         downloadJpg: '下载 JPG/JPEG',
         downloadTiff: '下载 TIFF',
         downloadPdf: '下载 PDF',
-        croppedPreviewTitle: '裁剪后证件照预览',
+        croppedPreviewTitle: '单张证件照预览',
         layoutPreviewTitle: '打印纸排版预览',
+        imageScale: '固定框内图像大小',
+        scaleDown: '缩小图像',
+        scaleUp: '放大图像',
+        resetScale: '恢复 100%',
+        confirmAdjustment: '确认调整',
+        scalePending: '调整待确认。',
         waitingUpload: '等待上传图片。',
         manualFinishedSize: '已使用手动成品尺寸。',
         customFinishedSize: '已使用自定义成品尺寸。',
@@ -307,6 +335,7 @@
         sizeSource: '尺寸来源',
         outputDpi: '输出 DPI',
         singlePrintPixels: '单张打印像素',
+        imageScaleSummary: '图像缩放',
         paperPixels: '打印纸像素',
         bestLayout: '最佳排版',
         copiesText: '{grid}，共 {count} 张',
@@ -351,8 +380,14 @@
         downloadJpg: 'JPG/JPEG をダウンロード',
         downloadTiff: 'TIFF をダウンロード',
         downloadPdf: 'PDF をダウンロード',
-        croppedPreviewTitle: 'トリミング後の証明写真プレビュー',
+        croppedPreviewTitle: '証明写真 1 枚のプレビュー',
         layoutPreviewTitle: '印刷用紙レイアウトプレビュー',
+        imageScale: '枠内の画像サイズ',
+        scaleDown: '画像を小さく',
+        scaleUp: '画像を大きく',
+        resetScale: '100% に戻す',
+        confirmAdjustment: '調整を確定',
+        scalePending: '調整は未確定です。',
         waitingUpload: '画像のアップロード待ちです。',
         manualFinishedSize: '手動入力の仕上がりサイズを使用しています。',
         customFinishedSize: 'カスタム仕上がりサイズを使用しています。',
@@ -395,6 +430,7 @@
         sizeSource: 'サイズの取得元',
         outputDpi: '出力 DPI',
         singlePrintPixels: '1 枚あたりの印刷ピクセル',
+        imageScaleSummary: '画像スケール',
         paperPixels: '用紙ピクセル',
         bestLayout: '最適レイアウト',
         copiesText: '{grid}、合計 {count} 枚',
@@ -426,6 +462,12 @@
     const summaryList = document.getElementById('summaryList');
     const croppedPreview = document.getElementById('croppedPreview');
     const layoutPreview = document.getElementById('layoutPreview');
+    const imageScaleRange = document.getElementById('imageScaleRange');
+    const imageScaleOut = document.getElementById('imageScaleOut');
+    const scaleDownBtn = document.getElementById('scaleDownBtn');
+    const scaleUpBtn = document.getElementById('scaleUpBtn');
+    const scaleResetBtn = document.getElementById('scaleResetBtn');
+    const scaleConfirmBtn = document.getElementById('scaleConfirmBtn');
     const pngLink = document.getElementById('pngLink');
     const jpgLink = document.getElementById('jpgLink');
     const tiffLink = document.getElementById('tiffLink');
@@ -437,6 +479,9 @@
     const photoWidthInput = form.elements.photo_w_mm;
     const photoHeightInput = form.elements.photo_h_mm;
     const sizeStatus = document.getElementById('sizeStatus');
+    const IMAGE_SCALE_MIN = 50;
+    const IMAGE_SCALE_MAX = 150;
+    const IMAGE_SCALE_STEP = 5;
 
     let applyingSize = false;
     let currentFile = null;
@@ -444,6 +489,8 @@
     let currentDpi = null;
     let currentLang = 'en';
     let lastResultData = null;
+    let draftImageScalePercent = 100;
+    let confirmedImageScalePercent = 100;
     let pngObjectUrl = null;
     let jpgObjectUrl = null;
     let tiffObjectUrl = null;
@@ -490,6 +537,12 @@
       });
       croppedPreview.setAttribute('aria-label', t('croppedPreviewTitle'));
       layoutPreview.setAttribute('aria-label', t('layoutPreviewTitle'));
+      imageScaleRange.setAttribute('aria-label', t('imageScale'));
+      imageScaleRange.closest('.scale-stepper').setAttribute('aria-label', t('imageScale'));
+      scaleDownBtn.setAttribute('aria-label', t('scaleDown'));
+      scaleDownBtn.title = t('scaleDown');
+      scaleUpBtn.setAttribute('aria-label', t('scaleUp'));
+      scaleUpBtn.title = t('scaleUp');
       submitBtn.textContent = submitBtn.disabled ? t('processing') : t('generatePreview');
       if (statusEl.dataset.statusKey) {
         statusEl.textContent = t(statusEl.dataset.statusKey);
@@ -512,11 +565,61 @@
     bindRange('anchor_x', 'anchorXOut');
     bindRange('anchor_y', 'anchorYOut');
 
+    function clampImageScalePercent(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) {
+        return 100;
+      }
+      return Math.max(IMAGE_SCALE_MIN, Math.min(IMAGE_SCALE_MAX, Math.round(number)));
+    }
+
+    function setImageScaleControlValue(value) {
+      const nextValue = clampImageScalePercent(value);
+      imageScaleRange.value = String(nextValue);
+      imageScaleOut.value = String(nextValue);
+    }
+
+    function hasPendingScaleAdjustment() {
+      return lastResultData && draftImageScalePercent !== confirmedImageScalePercent;
+    }
+
+    function updateScaleConfirmState() {
+      scaleConfirmBtn.disabled = submitBtn.disabled || !hasPendingScaleAdjustment();
+    }
+
+    function setDownloadLinksAvailable(isAvailable) {
+      const linkPairs = [
+        [pngLink, pngObjectUrl],
+        [jpgLink, jpgObjectUrl],
+        [tiffLink, tiffObjectUrl],
+        [pdfLink, pdfObjectUrl]
+      ];
+      linkPairs.forEach(([link, objectUrl]) => {
+        const available = isAvailable && Boolean(objectUrl);
+        link.classList.toggle('is-disabled', !available);
+        link.setAttribute('aria-disabled', String(!available));
+        if (available) {
+          link.href = objectUrl;
+        } else {
+          link.removeAttribute('href');
+        }
+      });
+    }
+
+    function resetImageScaleState() {
+      draftImageScalePercent = 100;
+      confirmedImageScalePercent = 100;
+      setImageScaleControlValue(draftImageScalePercent);
+      updateScaleConfirmState();
+      setDownloadLinksAvailable(false);
+    }
+
     function setBusy(isBusy, message = '', statusKey = '') {
       submitBtn.disabled = isBusy;
       submitBtn.textContent = isBusy ? t('processing') : t('generatePreview');
       statusEl.textContent = message;
       statusEl.dataset.statusKey = statusKey;
+      updateScaleConfirmState();
     }
 
     function formatMm(value) {
@@ -1001,37 +1104,6 @@
       }
     }
 
-    function cropToAspect(image, targetWidthMm, targetHeightMm, anchorX, anchorY) {
-      const imageWidth = image.naturalWidth;
-      const imageHeight = image.naturalHeight;
-      const targetRatio = targetWidthMm / targetHeightMm;
-      const sourceRatio = imageWidth / imageHeight;
-      let cropWidth;
-      let cropHeight;
-      let left;
-      let top;
-
-      if (sourceRatio > targetRatio) {
-        cropHeight = imageHeight;
-        cropWidth = Math.min(imageWidth, Math.round(cropHeight * targetRatio));
-        left = Math.round((imageWidth - cropWidth) * anchorX);
-        top = 0;
-      } else {
-        cropWidth = imageWidth;
-        cropHeight = Math.min(imageHeight, Math.round(cropWidth / targetRatio));
-        left = 0;
-        top = Math.round((imageHeight - cropHeight) * anchorY);
-      }
-
-      return {
-        left,
-        top,
-        width: cropWidth,
-        height: cropHeight,
-        box: [left, top, left + cropWidth, top + cropHeight]
-      };
-    }
-
     function chooseLayout(params) {
       const candidates = [];
       const paperOrientations = [{ widthMm: params.paperWidthMm, heightMm: params.paperHeightMm, swapped: false }];
@@ -1137,66 +1209,92 @@
       ctx.drawImage(sourceCanvas, 0, 0);
     }
 
-    function resizeCanvasHighQuality(sourceCanvas, targetWidth, targetHeight) {
-      if (sourceCanvas.width === targetWidth && sourceCanvas.height === targetHeight) {
-        return sourceCanvas;
-      }
+    function getImageFramePlacement(image, targetWidth, targetHeight, anchorX, anchorY, imageScalePercent) {
+      const imageWidth = image.naturalWidth || image.width;
+      const imageHeight = image.naturalHeight || image.height;
+      const baseScale = Math.max(targetWidth / imageWidth, targetHeight / imageHeight);
+      const drawScale = baseScale * (clampImageScalePercent(imageScalePercent) / 100);
+      const drawWidth = imageWidth * drawScale;
+      const drawHeight = imageHeight * drawScale;
+      const clampedAnchorX = Math.max(0, Math.min(1, Number(anchorX)));
+      const clampedAnchorY = Math.max(0, Math.min(1, Number(anchorY)));
+      const drawX = drawWidth >= targetWidth
+        ? -(drawWidth - targetWidth) * clampedAnchorX
+        : (targetWidth - drawWidth) * clampedAnchorX;
+      const drawY = drawHeight >= targetHeight
+        ? -(drawHeight - targetHeight) * clampedAnchorY
+        : (targetHeight - drawHeight) * clampedAnchorY;
+      const sourceLeft = Math.max(0, -drawX / drawScale);
+      const sourceTop = Math.max(0, -drawY / drawScale);
+      const sourceRight = Math.min(imageWidth, (targetWidth - drawX) / drawScale);
+      const sourceBottom = Math.min(imageHeight, (targetHeight - drawY) / drawScale);
 
-      let currentCanvas = sourceCanvas;
-      let currentWidth = sourceCanvas.width;
-      let currentHeight = sourceCanvas.height;
+      return {
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight,
+        cropBox: [
+          Math.floor(sourceLeft),
+          Math.floor(sourceTop),
+          Math.ceil(sourceRight),
+          Math.ceil(sourceBottom)
+        ]
+      };
+    }
 
-      while (currentWidth > targetWidth * 2 && currentHeight > targetHeight * 2) {
-        const nextWidth = Math.max(targetWidth, Math.round(currentWidth / 2));
-        const nextHeight = Math.max(targetHeight, Math.round(currentHeight / 2));
-        const nextCanvas = makeCanvas(nextWidth, nextHeight);
-        const nextCtx = nextCanvas.getContext('2d');
-        nextCtx.imageSmoothingEnabled = true;
-        nextCtx.imageSmoothingQuality = 'high';
-        nextCtx.drawImage(currentCanvas, 0, 0, nextWidth, nextHeight);
-        currentCanvas = nextCanvas;
-        currentWidth = nextWidth;
-        currentHeight = nextHeight;
-      }
+    function cropCanvasFromBox(image, cropBox) {
+      const [left, top, right, bottom] = cropBox;
+      const cropWidth = Math.max(1, right - left);
+      const cropHeight = Math.max(1, bottom - top);
+      const canvas = makeCanvas(cropWidth, cropHeight);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(image, left, top, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+      return canvas;
+    }
 
-      const finalCanvas = makeCanvas(targetWidth, targetHeight);
-      const finalCtx = finalCanvas.getContext('2d');
-      finalCtx.imageSmoothingEnabled = true;
-      finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
-      return finalCanvas;
+    function composePrintPhoto(image, targetWidth, targetHeight, anchorX, anchorY, imageScalePercent) {
+      const placement = getImageFramePlacement(
+        image,
+        targetWidth,
+        targetHeight,
+        anchorX,
+        anchorY,
+        imageScalePercent
+      );
+      const printCanvas = makeCanvas(targetWidth, targetHeight);
+      const printCtx = printCanvas.getContext('2d');
+      printCtx.fillStyle = '#ffffff';
+      printCtx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+      printCtx.imageSmoothingEnabled = true;
+      printCtx.imageSmoothingQuality = 'high';
+      printCtx.drawImage(
+        image,
+        placement.drawX,
+        placement.drawY,
+        placement.drawWidth,
+        placement.drawHeight
+      );
+      return {
+        croppedCanvas: cropCanvasFromBox(image, placement.cropBox),
+        printCanvas,
+        cropBox: placement.cropBox
+      };
     }
 
     function buildPrintSheet(image, params) {
       const plan = chooseLayout(params);
-      const crop = cropToAspect(
-        image,
-        params.photoWidthMm,
-        params.photoHeightMm,
-        params.anchorX,
-        params.anchorY
-      );
 
-      const croppedCanvas = makeCanvas(crop.width, crop.height);
-      const croppedCtx = croppedCanvas.getContext('2d');
-      croppedCtx.drawImage(
+      const photoFrame = composePrintPhoto(
         image,
-        crop.left,
-        crop.top,
-        crop.width,
-        crop.height,
-        0,
-        0,
-        crop.width,
-        crop.height
-      );
-
-      const printCanvas = resizeCanvasHighQuality(
-        croppedCanvas,
         plan.photo_unrotated_w_px,
-        plan.photo_unrotated_h_px
+        plan.photo_unrotated_h_px,
+        params.anchorX,
+        params.anchorY,
+        params.imageScalePercent
       );
 
+      const printCanvas = photoFrame.printCanvas;
       const sheetPhoto = plan.photo_rotated_on_sheet ? rotateCanvas90(printCanvas) : printCanvas;
       const sheetCanvas = makeCanvas(plan.paper_w_px, plan.paper_h_px);
       const sheetCtx = sheetCanvas.getContext('2d');
@@ -1216,7 +1314,14 @@
         }
       }
 
-      return { croppedCanvas, sheetCanvas, cropBox: crop.box, plan };
+      return {
+        croppedCanvas: photoFrame.croppedCanvas,
+        printCanvas,
+        sheetCanvas,
+        cropBox: photoFrame.cropBox,
+        plan,
+        imageScalePercent: clampImageScalePercent(params.imageScalePercent)
+      };
     }
 
     function canvasToBlob(canvas, type, quality) {
@@ -1392,6 +1497,7 @@
       jpgObjectUrl = null;
       tiffObjectUrl = null;
       pdfObjectUrl = null;
+      setDownloadLinksAvailable(false);
     }
 
     function writeSummary(data) {
@@ -1406,6 +1512,7 @@
         [t('sizeSource'), sizeSource],
         [t('outputDpi'), plan.dpi],
         [t('singlePrintPixels'), `${plan.photo_unrotated_w_px} x ${plan.photo_unrotated_h_px}`],
+        [t('imageScaleSummary'), `${data.imageScalePercent || 100}%`],
         [t('paperPixels'), `${plan.paper_w_px} x ${plan.paper_h_px}`],
         [t('bestLayout'), t('copiesText', { grid: `${plan.cols} x ${plan.rows}`, count: plan.count })],
         [t('outputPaperSize'), `${formatMm(plan.paper_w_mm)} mm × ${formatMm(plan.paper_h_mm)} mm`],
@@ -1445,6 +1552,7 @@
         gapMm,
         anchorX: Math.max(0, Math.min(1, Number(form.elements.anchor_x.value) / 100)),
         anchorY: Math.max(0, Math.min(1, Number(form.elements.anchor_y.value) / 100)),
+        imageScalePercent: draftImageScalePercent,
         autoPaperOrientation: form.elements.auto_paper_orientation.checked,
         allowPhotoRotation: form.elements.allow_photo_rotation.checked,
         drawCutMarks: form.elements.draw_cut_marks.checked
@@ -1476,6 +1584,47 @@
       }
     }
 
+    function renderDraftScalePreview() {
+      if (!lastResultData) {
+        updateScaleConfirmState();
+        return;
+      }
+
+      try {
+        const params = readParams();
+        const result = buildPrintSheet(lastResultData.image, params);
+        const nextResultData = {
+          ...result,
+          image: lastResultData.image,
+          detected: lastResultData.detected
+        };
+        drawCanvasPreview(croppedPreview, result.printCanvas);
+        drawCanvasPreview(layoutPreview, result.sheetCanvas);
+        writeSummary(nextResultData);
+        lastResultData = nextResultData;
+
+        if (hasPendingScaleAdjustment()) {
+          setDownloadLinksAvailable(false);
+          setBusy(false, t('scalePending'), 'scalePending');
+        } else {
+          setDownloadLinksAvailable(true);
+          setBusy(false, t('done'), 'done');
+        }
+      } catch (error) {
+        setBusy(false, error.message);
+      }
+    }
+
+    function setDraftImageScale(value, renderPreview = true) {
+      draftImageScalePercent = clampImageScalePercent(value);
+      setImageScaleControlValue(draftImageScalePercent);
+      if (renderPreview) {
+        renderDraftScalePreview();
+      } else {
+        updateScaleConfirmState();
+      }
+    }
+
     languageButtons.forEach((button) => {
       button.addEventListener('click', () => {
         if (currentLang === button.dataset.lang) {
@@ -1487,7 +1636,29 @@
       });
     });
 
-    photoInput.addEventListener('change', detectPhotoSizeForUpload);
+    scaleDownBtn.addEventListener('click', () => {
+      setDraftImageScale(draftImageScalePercent - IMAGE_SCALE_STEP);
+    });
+    scaleUpBtn.addEventListener('click', () => {
+      setDraftImageScale(draftImageScalePercent + IMAGE_SCALE_STEP);
+    });
+    scaleResetBtn.addEventListener('click', () => {
+      setDraftImageScale(100);
+    });
+    imageScaleRange.addEventListener('input', () => {
+      setDraftImageScale(imageScaleRange.value);
+    });
+    scaleConfirmBtn.addEventListener('click', () => {
+      form.requestSubmit();
+    });
+
+    photoInput.addEventListener('change', () => {
+      lastResultData = null;
+      resultEl.classList.add('hidden');
+      revokeDownloadUrls();
+      resetImageScaleState();
+      detectPhotoSizeForUpload();
+    });
     autoSizeInput.addEventListener('change', () => {
       if (autoSizeInput.checked) {
         photoPresetSelect.value = '';
@@ -1537,7 +1708,7 @@
 
         const params = readParams();
         const result = buildPrintSheet(image, params);
-        drawCanvasPreview(croppedPreview, result.croppedCanvas);
+        drawCanvasPreview(croppedPreview, result.printCanvas);
         drawCanvasPreview(layoutPreview, result.sheetCanvas);
 
         const [pngBlob, jpgBlob, pdfBlob] = await Promise.all([
@@ -1561,7 +1732,10 @@
 
         writeSummary({ ...result, image, detected });
         lastResultData = { ...result, image, detected };
+        confirmedImageScalePercent = draftImageScalePercent;
+        setImageScaleControlValue(draftImageScalePercent);
         resultEl.classList.remove('hidden');
+        setDownloadLinksAvailable(true);
         setBusy(false, t('done'), 'done');
       } catch (error) {
         setBusy(false, error.message);
@@ -1569,6 +1743,7 @@
     });
 
     translatePage();
+    resetImageScaleState();
     sizeStatus.textContent = t('waitingUpload');
   </script>
 </body>

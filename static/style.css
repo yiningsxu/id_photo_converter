@@ -180,10 +180,32 @@ button,
 
 button:disabled {
   opacity: 0.55;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .button.secondary {
+  background: #e9eef8;
+  color: #16346e;
+}
+
+.button.is-disabled {
+  opacity: 0.48;
+  pointer-events: none;
+}
+
+button.secondary {
+  background: #e9eef8;
+  color: #16346e;
+}
+
+button.icon-button {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 22px;
+  line-height: 1;
   background: #e9eef8;
   color: #16346e;
 }
@@ -282,6 +304,45 @@ button:disabled {
   border: 1px solid #e1e5ea;
   border-radius: 12px;
   background: white;
+}
+
+.scale-controls {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.scale-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #384452;
+  font-size: 14px;
+}
+
+.scale-display strong {
+  color: #18202a;
+  font-size: 16px;
+}
+
+.scale-stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 10px;
+  align-items: center;
+}
+
+.scale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.scale-actions button {
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
 }
 
 @media (max-width: 820px) {
