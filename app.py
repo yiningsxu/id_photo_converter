@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Flask, abort, jsonify, render_template, request, send_file
+from flask import Flask, abort, jsonify, request, send_file
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from converter import (
@@ -40,7 +40,7 @@ def _float_form(name: str, default: float) -> float:
 
 @app.get("/")
 def index():
-    return render_template("index.html")
+    return send_file(BASE_DIR / "index.html")
 
 
 @app.after_request

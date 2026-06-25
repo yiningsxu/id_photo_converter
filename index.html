@@ -1,0 +1,1158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>证件照打印排版转换器</title>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <h1>证件照打印排版转换器</h1>
+        <p>上传一张证件照，在浏览器里自动识别或选择成品尺寸，完成裁剪、排版，并下载可打印 PNG、JPG/JPEG、TIFF、PDF。</p>
+      </div>
+      <div class="print-note">
+        <strong>GitHub 静态版</strong>
+        <span>所有处理都在浏览器本地完成。下载 PDF 后请使用“实际大小 / 100%”打印。</span>
+      </div>
+    </section>
+
+    <form id="converterForm" class="panel">
+      <div class="grid two">
+        <label class="field wide">
+          <span>上传证件照</span>
+          <input
+            type="file"
+            name="photo"
+            accept=".jpg,.jpeg,.jpe,image/jpeg,.png,image/png,.webp,image/webp,.bmp,image/bmp,.tif,.tiff,image/tiff,.gif,image/gif,.heic,.heif,image/heic,image/heif"
+            required
+          >
+          <span class="field-note">支持浏览器可解码的 JPEG/JPG、PNG、WebP、BMP、TIFF、GIF、HEIC/HEIF。</span>
+        </label>
+
+        <fieldset>
+          <legend>证件照成品尺寸</legend>
+          <label class="inline-check">
+            <input type="checkbox" name="auto_detect_photo_size" checked>
+            自动识别上传图尺寸
+          </label>
+          <label class="field preset-field">
+            <span>常用规格预设</span>
+            <select name="photo_size_preset">
+              <option value="">自动识别 / 自定义输入</option>
+              <option value="35,45">35x45 mm - 日本护照/My Number、韩国护照/居民登记证、台湾护照/身分证、法国/德国/意大利等多数欧洲证件</option>
+              <option value="51,51">51x51 mm - 美国护照/签证/DV/USCIS常见照片</option>
+              <option value="33,48">33x48 mm - 中国大陆护照/旅行证/中国签证</option>
+              <option value="30,40">30x40 mm - 日本在留卡/入管提交照</option>
+              <option value="24,30">24x30 mm - 日本驾照</option>
+              <option value="26,32">26x32 mm - 中国大陆居民身份证、西班牙DNI/护照常用竖版</option>
+            </select>
+          </label>
+          <div class="row">
+            <label class="field">
+              <span>宽度 mm</span>
+              <input type="number" name="photo_w_mm" min="1" step="0.1" value="35" required>
+            </label>
+            <label class="field">
+              <span>高度 mm</span>
+              <input type="number" name="photo_h_mm" min="1" step="0.1" value="45" required>
+            </label>
+          </div>
+          <p id="sizeStatus" class="field-note">等待上传图片。</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>打印纸尺寸</legend>
+          <div class="row">
+            <label class="field">
+              <span>宽度 mm</span>
+              <input type="number" name="paper_w_mm" min="1" step="0.1" value="100" required>
+            </label>
+            <label class="field">
+              <span>高度 mm</span>
+              <input type="number" name="paper_h_mm" min="1" step="0.1" value="148" required>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>打印参数</legend>
+          <div class="row three">
+            <label class="field">
+              <span>DPI</span>
+              <input type="number" name="dpi" min="72" max="1200" step="1" value="300" required>
+            </label>
+            <label class="field">
+              <span>页边距 mm</span>
+              <input type="number" name="margin_mm" min="0" step="0.1" value="3" required>
+            </label>
+            <label class="field">
+              <span>照片间距 mm</span>
+              <input type="number" name="gap_mm" min="0" step="0.1" value="2" required>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>裁剪位置</legend>
+          <label class="field range-field">
+            <span>水平裁剪中心 <output id="anchorXOut">50</output>%</span>
+            <input type="range" name="anchor_x" min="0" max="100" value="50">
+          </label>
+          <label class="field range-field">
+            <span>垂直裁剪中心 <output id="anchorYOut">50</output>%</span>
+            <input type="range" name="anchor_y" min="0" max="100" value="50">
+          </label>
+        </fieldset>
+
+        <fieldset class="wide options">
+          <legend>排版选项</legend>
+          <label><input type="checkbox" name="auto_paper_orientation" checked> 自动选择纸张横竖方向</label>
+          <label><input type="checkbox" name="allow_photo_rotation"> 允许单张证件照在纸上旋转 90° 以容纳更多张</label>
+          <label><input type="checkbox" name="draw_cut_marks" checked> 显示裁切边框</label>
+        </fieldset>
+      </div>
+
+      <div class="actions">
+        <button type="submit" id="submitBtn">生成预览</button>
+        <span id="status" role="status"></span>
+      </div>
+    </form>
+
+    <section id="result" class="result hidden">
+      <div class="panel summary">
+        <h2>排版结果</h2>
+        <dl id="summaryList"></dl>
+        <div class="download-row">
+          <a id="pngLink" class="button secondary" href="#" download="id_photo_sheet.png">下载 PNG</a>
+          <a id="jpgLink" class="button secondary" href="#" download="id_photo_sheet.jpg">下载 JPG/JPEG</a>
+          <a id="tiffLink" class="button secondary" href="#" download="id_photo_sheet.tiff">下载 TIFF</a>
+          <a id="pdfLink" class="button" href="#" download="id_photo_sheet.pdf">下载 PDF</a>
+        </div>
+      </div>
+
+      <div class="preview-grid">
+        <article class="panel preview-card">
+          <h2>裁剪后证件照预览</h2>
+          <canvas id="croppedPreview" aria-label="裁剪后的证件照预览"></canvas>
+        </article>
+        <article class="panel preview-card">
+          <h2>打印纸排版预览</h2>
+          <canvas id="layoutPreview" aria-label="打印纸排版预览"></canvas>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const MM_PER_INCH = 25.4;
+    const COMMON_PRINT_DPIS = [300, 350, 600];
+    const PHOTO_SIZE_PRESETS = [
+      { label: '35x45 mm - 日本护照/My Number、韩国护照/居民登记证、台湾护照/身分证、欧洲多数证件', widthMm: 35, heightMm: 45 },
+      { label: '51x51 mm - 美国护照/签证/DV/USCIS常见照片', widthMm: 51, heightMm: 51 },
+      { label: '33x48 mm - 中国大陆护照/旅行证/中国签证', widthMm: 33, heightMm: 48 },
+      { label: '30x40 mm - 日本在留卡/入管提交照', widthMm: 30, heightMm: 40 },
+      { label: '24x30 mm - 日本驾照', widthMm: 24, heightMm: 30 },
+      { label: '26x32 mm - 中国大陆居民身份证、西班牙DNI/护照常用竖版', widthMm: 26, heightMm: 32 }
+    ];
+
+    const form = document.getElementById('converterForm');
+    const statusEl = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+    const resultEl = document.getElementById('result');
+    const summaryList = document.getElementById('summaryList');
+    const croppedPreview = document.getElementById('croppedPreview');
+    const layoutPreview = document.getElementById('layoutPreview');
+    const pngLink = document.getElementById('pngLink');
+    const jpgLink = document.getElementById('jpgLink');
+    const tiffLink = document.getElementById('tiffLink');
+    const pdfLink = document.getElementById('pdfLink');
+    const photoInput = form.elements.photo;
+    const autoSizeInput = form.elements.auto_detect_photo_size;
+    const photoPresetSelect = form.elements.photo_size_preset;
+    const photoWidthInput = form.elements.photo_w_mm;
+    const photoHeightInput = form.elements.photo_h_mm;
+    const sizeStatus = document.getElementById('sizeStatus');
+
+    let applyingSize = false;
+    let currentFile = null;
+    let currentImage = null;
+    let currentDpi = null;
+    let pngObjectUrl = null;
+    let jpgObjectUrl = null;
+    let tiffObjectUrl = null;
+    let pdfObjectUrl = null;
+
+    function bindRange(name, outputId) {
+      const input = form.elements[name];
+      const output = document.getElementById(outputId);
+      input.addEventListener('input', () => {
+        output.value = input.value;
+      });
+    }
+    bindRange('anchor_x', 'anchorXOut');
+    bindRange('anchor_y', 'anchorYOut');
+
+    function setBusy(isBusy, message = '') {
+      submitBtn.disabled = isBusy;
+      submitBtn.textContent = isBusy ? '处理中...' : '生成预览';
+      statusEl.textContent = message;
+    }
+
+    function formatMm(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) {
+        return value;
+      }
+      return number.toFixed(1).replace(/\.0$/, '');
+    }
+
+    function mmToPx(valueMm, dpi) {
+      return Math.max(1, Math.round(valueMm / MM_PER_INCH * dpi));
+    }
+
+    function positiveNumber(raw, fieldName) {
+      const value = Number(raw);
+      if (!Number.isFinite(value) || value <= 0) {
+        throw new Error(`${fieldName} 必须大于 0。`);
+      }
+      return value;
+    }
+
+    function nonNegativeNumber(raw, fieldName) {
+      const value = Number(raw);
+      if (!Number.isFinite(value) || value < 0) {
+        throw new Error(`${fieldName} 不能小于 0。`);
+      }
+      return value;
+    }
+
+    function intNumber(raw, fieldName) {
+      const value = Number(raw);
+      if (!Number.isInteger(value)) {
+        throw new Error(`${fieldName} 必须是整数。`);
+      }
+      return value;
+    }
+
+    function readAscii(view, offset, length) {
+      if (offset < 0 || offset + length > view.byteLength) {
+        return '';
+      }
+      let text = '';
+      for (let i = 0; i < length; i += 1) {
+        text += String.fromCharCode(view.getUint8(offset + i));
+      }
+      return text;
+    }
+
+    function parseExifDpi(view, segmentStart, segmentEnd) {
+      if (readAscii(view, segmentStart, 6) !== 'Exif\0\0') {
+        return null;
+      }
+
+      const tiffStart = segmentStart + 6;
+      if (tiffStart + 8 > segmentEnd) {
+        return null;
+      }
+
+      const endian = readAscii(view, tiffStart, 2);
+      const littleEndian = endian === 'II';
+      if (!littleEndian && endian !== 'MM') {
+        return null;
+      }
+      const marker = view.getUint16(tiffStart + 2, littleEndian);
+      if (marker !== 42) {
+        return null;
+      }
+
+      const ifdOffset = view.getUint32(tiffStart + 4, littleEndian);
+      const ifdStart = tiffStart + ifdOffset;
+      if (ifdStart + 2 > segmentEnd) {
+        return null;
+      }
+
+      const readRational = (valueOffset) => {
+        const offset = tiffStart + valueOffset;
+        if (offset + 8 > segmentEnd) {
+          return null;
+        }
+        const numerator = view.getUint32(offset, littleEndian);
+        const denominator = view.getUint32(offset + 4, littleEndian);
+        if (!denominator) {
+          return null;
+        }
+        return numerator / denominator;
+      };
+
+      const entryCount = view.getUint16(ifdStart, littleEndian);
+      let xDpi = null;
+      let yDpi = null;
+      let unit = 2;
+
+      for (let i = 0; i < entryCount; i += 1) {
+        const entry = ifdStart + 2 + i * 12;
+        if (entry + 12 > segmentEnd) {
+          break;
+        }
+        const tag = view.getUint16(entry, littleEndian);
+        const type = view.getUint16(entry + 2, littleEndian);
+        const count = view.getUint32(entry + 4, littleEndian);
+        const valueOffset = view.getUint32(entry + 8, littleEndian);
+
+        if (tag === 0x011A && type === 5 && count >= 1) {
+          xDpi = readRational(valueOffset);
+        } else if (tag === 0x011B && type === 5 && count >= 1) {
+          yDpi = readRational(valueOffset);
+        } else if (tag === 0x0128 && type === 3 && count >= 1) {
+          unit = view.getUint16(entry + 8, littleEndian);
+        }
+      }
+
+      if (!xDpi || !yDpi) {
+        return null;
+      }
+      if (unit === 3) {
+        xDpi *= 2.54;
+        yDpi *= 2.54;
+      }
+      if (unit !== 2 && unit !== 3) {
+        return null;
+      }
+      return { x: xDpi, y: yDpi, source: 'exif' };
+    }
+
+    function parseJpegDpi(buffer) {
+      const view = new DataView(buffer);
+      if (view.byteLength < 4 || view.getUint16(0, false) !== 0xFFD8) {
+        return null;
+      }
+
+      let offset = 2;
+      while (offset + 4 <= view.byteLength) {
+        if (view.getUint8(offset) !== 0xFF) {
+          offset += 1;
+          continue;
+        }
+        const marker = view.getUint8(offset + 1);
+        offset += 2;
+
+        if (marker === 0xD9 || marker === 0xDA) {
+          break;
+        }
+        if (marker >= 0xD0 && marker <= 0xD7) {
+          continue;
+        }
+        if (offset + 2 > view.byteLength) {
+          break;
+        }
+
+        const length = view.getUint16(offset, false);
+        const segmentStart = offset + 2;
+        const segmentEnd = offset + length;
+        if (length < 2 || segmentEnd > view.byteLength) {
+          break;
+        }
+
+        if (marker === 0xE0 && readAscii(view, segmentStart, 5) === 'JFIF\0') {
+          const unit = view.getUint8(segmentStart + 7);
+          let xDpi = view.getUint16(segmentStart + 8, false);
+          let yDpi = view.getUint16(segmentStart + 10, false);
+          if (unit === 2) {
+            xDpi *= 2.54;
+            yDpi *= 2.54;
+          }
+          if ((unit === 1 || unit === 2) && xDpi > 0 && yDpi > 0) {
+            return { x: xDpi, y: yDpi, source: 'jfif' };
+          }
+        } else if (marker === 0xE1) {
+          const exifDpi = parseExifDpi(view, segmentStart, segmentEnd);
+          if (exifDpi) {
+            return exifDpi;
+          }
+        }
+
+        offset = segmentEnd;
+      }
+      return null;
+    }
+
+    function parsePngDpi(buffer) {
+      const view = new DataView(buffer);
+      const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+      if (view.byteLength < 8 || !signature.every((byte, index) => view.getUint8(index) === byte)) {
+        return null;
+      }
+
+      let offset = 8;
+      while (offset + 12 <= view.byteLength) {
+        const length = view.getUint32(offset, false);
+        const type = readAscii(view, offset + 4, 4);
+        const dataStart = offset + 8;
+        if (dataStart + length + 4 > view.byteLength) {
+          break;
+        }
+        if (type === 'pHYs' && length >= 9) {
+          const pixelsPerUnitX = view.getUint32(dataStart, false);
+          const pixelsPerUnitY = view.getUint32(dataStart + 4, false);
+          const unit = view.getUint8(dataStart + 8);
+          if (unit === 1 && pixelsPerUnitX > 0 && pixelsPerUnitY > 0) {
+            return {
+              x: pixelsPerUnitX * 0.0254,
+              y: pixelsPerUnitY * 0.0254,
+              source: 'png_phys'
+            };
+          }
+        }
+        offset = dataStart + length + 4;
+      }
+      return null;
+    }
+
+    async function readDpiMetadata(file) {
+      const buffer = await file.arrayBuffer();
+      return parseJpegDpi(buffer) || parsePngDpi(buffer);
+    }
+
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(image);
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('浏览器无法读取这张图片。请换成 JPEG、PNG、WebP、BMP、TIFF、GIF，或使用支持 HEIC/HEIF 的浏览器。'));
+        };
+        image.src = url;
+      });
+    }
+
+    async function prepareImage(file) {
+      if (currentFile === file && currentImage) {
+        return { image: currentImage, dpi: currentDpi };
+      }
+      const [image, dpi] = await Promise.all([
+        loadImage(file),
+        readDpiMetadata(file).catch(() => null)
+      ]);
+      currentFile = file;
+      currentImage = image;
+      currentDpi = dpi;
+      return { image, dpi };
+    }
+
+    function orientedPresets() {
+      const presets = [];
+      PHOTO_SIZE_PRESETS.forEach((preset) => {
+        presets.push({ preset, widthMm: preset.widthMm, heightMm: preset.heightMm });
+        if (Math.abs(preset.widthMm - preset.heightMm) > 1e-9) {
+          presets.push({ preset, widthMm: preset.heightMm, heightMm: preset.widthMm });
+        }
+      });
+      return presets;
+    }
+
+    function detectedLabel(preset, widthMm, heightMm) {
+      return `${preset.label}（${formatMm(widthMm)} x ${formatMm(heightMm)} mm）`;
+    }
+
+    function nearestPresetByMm(widthMm, heightMm) {
+      let best = null;
+      orientedPresets().forEach((candidate) => {
+        const widthError = Math.abs(widthMm - candidate.widthMm) / candidate.widthMm;
+        const heightError = Math.abs(heightMm - candidate.heightMm) / candidate.heightMm;
+        const maxAbsErrorMm = Math.max(Math.abs(widthMm - candidate.widthMm), Math.abs(heightMm - candidate.heightMm));
+        const score = Math.max(widthError, heightError);
+        const item = { ...candidate, score, maxAbsErrorMm };
+        if (!best || score < best.score || (score === best.score && maxAbsErrorMm < best.maxAbsErrorMm)) {
+          best = item;
+        }
+      });
+      return best;
+    }
+
+    function isPlausiblePhotoMm(widthMm, heightMm) {
+      const shortSide = Math.min(widthMm, heightMm);
+      const longSide = Math.max(widthMm, heightMm);
+      return shortSide >= 15 && shortSide <= 80 && longSide >= 20 && longSide <= 90;
+    }
+
+    function detectFromDpiMetadata(image, dpi) {
+      if (!dpi || !dpi.x || !dpi.y) {
+        return null;
+      }
+      const widthMm = image.naturalWidth / dpi.x * MM_PER_INCH;
+      const heightMm = image.naturalHeight / dpi.y * MM_PER_INCH;
+      if (!isPlausiblePhotoMm(widthMm, heightMm)) {
+        return null;
+      }
+
+      const estimatedDpi = (dpi.x + dpi.y) / 2;
+      const nearest = nearestPresetByMm(widthMm, heightMm);
+      if (nearest && (nearest.score <= 0.04 || nearest.maxAbsErrorMm <= 1.2)) {
+        const label = detectedLabel(nearest.preset, nearest.widthMm, nearest.heightMm);
+        return {
+          widthMm: nearest.widthMm,
+          heightMm: nearest.heightMm,
+          label,
+          confidence: 'high',
+          estimatedDpi,
+          source: dpi.source,
+          message: `已根据图片 DPI 元数据识别为 ${label}。`
+        };
+      }
+
+      const measuredWidthMm = Math.round(widthMm * 10) / 10;
+      const measuredHeightMm = Math.round(heightMm * 10) / 10;
+      const label = `自定义尺寸（${formatMm(measuredWidthMm)} x ${formatMm(measuredHeightMm)} mm）`;
+      return {
+        widthMm: measuredWidthMm,
+        heightMm: measuredHeightMm,
+        label,
+        confidence: 'medium',
+        estimatedDpi,
+        source: dpi.source,
+        message: `已根据图片 DPI 元数据识别为 ${label}。`
+      };
+    }
+
+    function ratioKey(widthMm, heightMm) {
+      return Math.round((widthMm / heightMm) * 1000);
+    }
+
+    function detectFromPixelDimensions(image) {
+      const candidates = [];
+      const ratioMatches = [];
+      const sourceRatio = image.naturalWidth / image.naturalHeight;
+
+      orientedPresets().forEach((candidate) => {
+        const targetRatio = candidate.widthMm / candidate.heightMm;
+        const ratioError = Math.abs(sourceRatio - targetRatio) / targetRatio;
+        if (ratioError <= 0.008) {
+          ratioMatches.push(`${candidate.preset.label}-${ratioKey(candidate.widthMm, candidate.heightMm)}`);
+        }
+
+        const estimatedDpiX = image.naturalWidth * MM_PER_INCH / candidate.widthMm;
+        const estimatedDpiY = image.naturalHeight * MM_PER_INCH / candidate.heightMm;
+        const estimatedDpi = (estimatedDpiX + estimatedDpiY) / 2;
+        if (estimatedDpi <= 0) {
+          return;
+        }
+
+        const dpiBalanceError = Math.abs(estimatedDpiX - estimatedDpiY) / estimatedDpi;
+        const nearestCommonDpi = COMMON_PRINT_DPIS.reduce((best, dpi) => {
+          const bestError = Math.abs(estimatedDpi - best) / best;
+          const nextError = Math.abs(estimatedDpi - dpi) / dpi;
+          return nextError < bestError ? dpi : best;
+        }, COMMON_PRINT_DPIS[0]);
+        const commonDpiError = Math.abs(estimatedDpi - nearestCommonDpi) / nearestCommonDpi;
+        const expectedWidthPx = candidate.widthMm / MM_PER_INCH * nearestCommonDpi;
+        const expectedHeightPx = candidate.heightMm / MM_PER_INCH * nearestCommonDpi;
+        const pixelError = Math.max(
+          Math.abs(image.naturalWidth - expectedWidthPx) / expectedWidthPx,
+          Math.abs(image.naturalHeight - expectedHeightPx) / expectedHeightPx
+        );
+        const score = (dpiBalanceError * 4) + (commonDpiError * 2) + pixelError;
+        candidates.push({ ...candidate, score, dpiBalanceError, commonDpiError, ratioError, estimatedDpi });
+      });
+
+      if (!candidates.length) {
+        return null;
+      }
+
+      candidates.sort((a, b) => (
+        a.score - b.score ||
+        a.dpiBalanceError - b.dpiBalanceError ||
+        a.commonDpiError - b.commonDpiError ||
+        a.ratioError - b.ratioError
+      ));
+
+      const best = candidates[0];
+      const label = detectedLabel(best.preset, best.widthMm, best.heightMm);
+      if (best.dpiBalanceError <= 0.025 && best.commonDpiError <= 0.035) {
+        return {
+          widthMm: best.widthMm,
+          heightMm: best.heightMm,
+          label,
+          confidence: 'high',
+          estimatedDpi: best.estimatedDpi,
+          source: 'pixel_match',
+          message: `已根据像素尺寸识别为 ${label}。`
+        };
+      }
+
+      if (
+        best.ratioError <= 0.008 &&
+        best.dpiBalanceError <= 0.025 &&
+        best.estimatedDpi >= 250 &&
+        best.estimatedDpi <= 650 &&
+        ratioMatches.length === 1
+      ) {
+        return {
+          widthMm: best.widthMm,
+          heightMm: best.heightMm,
+          label,
+          confidence: 'medium',
+          estimatedDpi: best.estimatedDpi,
+          source: 'aspect_ratio',
+          message: `已根据长宽比识别为 ${label}。`
+        };
+      }
+      return null;
+    }
+
+    function detectPhotoSize(image, dpi) {
+      return detectFromDpiMetadata(image, dpi) || detectFromPixelDimensions(image);
+    }
+
+    function applySizeValues(widthMm, heightMm) {
+      applyingSize = true;
+      photoWidthInput.value = formatMm(widthMm);
+      photoHeightInput.value = formatMm(heightMm);
+      applyingSize = false;
+    }
+
+    function syncPresetSelect(widthMm, heightMm) {
+      const match = Array.from(photoPresetSelect.options).find((option) => {
+        if (!option.value) {
+          return false;
+        }
+        const [presetW, presetH] = option.value.split(',').map(Number);
+        return Math.abs(presetW - Number(widthMm)) < 0.05 && Math.abs(presetH - Number(heightMm)) < 0.05;
+      });
+      photoPresetSelect.value = match ? match.value : '';
+    }
+
+    function applyDetectedSize(size) {
+      applySizeValues(size.widthMm, size.heightMm);
+      syncPresetSelect(size.widthMm, size.heightMm);
+      const dpiText = size.estimatedDpi ? `，约 ${Math.round(size.estimatedDpi * 10) / 10} DPI` : '';
+      const confidenceText = size.confidence === 'high' ? '高置信度' : '中等置信度';
+      sizeStatus.textContent = `已识别：${size.label}（${confidenceText}${dpiText}）`;
+    }
+
+    async function detectPhotoSizeForUpload() {
+      const file = photoInput.files[0];
+      if (!file) {
+        sizeStatus.textContent = '等待上传图片。';
+        return;
+      }
+      if (!autoSizeInput.checked) {
+        sizeStatus.textContent = '已使用手动成品尺寸。';
+        return;
+      }
+
+      sizeStatus.textContent = '正在识别成品尺寸...';
+      try {
+        const { image, dpi } = await prepareImage(file);
+        const detected = detectPhotoSize(image, dpi);
+        if (detected) {
+          applyDetectedSize(detected);
+        } else {
+          sizeStatus.textContent = '未能可靠识别成品尺寸，请选择预设或手动输入宽度和高度。';
+        }
+      } catch (error) {
+        sizeStatus.textContent = error.message;
+      }
+    }
+
+    function cropToAspect(image, targetWidthMm, targetHeightMm, anchorX, anchorY) {
+      const imageWidth = image.naturalWidth;
+      const imageHeight = image.naturalHeight;
+      const targetRatio = targetWidthMm / targetHeightMm;
+      const sourceRatio = imageWidth / imageHeight;
+      let cropWidth;
+      let cropHeight;
+      let left;
+      let top;
+
+      if (sourceRatio > targetRatio) {
+        cropHeight = imageHeight;
+        cropWidth = Math.min(imageWidth, Math.round(cropHeight * targetRatio));
+        left = Math.round((imageWidth - cropWidth) * anchorX);
+        top = 0;
+      } else {
+        cropWidth = imageWidth;
+        cropHeight = Math.min(imageHeight, Math.round(cropWidth / targetRatio));
+        left = 0;
+        top = Math.round((imageHeight - cropHeight) * anchorY);
+      }
+
+      return {
+        left,
+        top,
+        width: cropWidth,
+        height: cropHeight,
+        box: [left, top, left + cropWidth, top + cropHeight]
+      };
+    }
+
+    function chooseLayout(params) {
+      const candidates = [];
+      const paperOrientations = [{ widthMm: params.paperWidthMm, heightMm: params.paperHeightMm, swapped: false }];
+      if (params.autoPaperOrientation && Math.abs(params.paperWidthMm - params.paperHeightMm) > 1e-9) {
+        paperOrientations.push({ widthMm: params.paperHeightMm, heightMm: params.paperWidthMm, swapped: true });
+      }
+
+      const photoOrientations = [{ widthMm: params.photoWidthMm, heightMm: params.photoHeightMm, rotated: false }];
+      if (params.allowPhotoRotation && Math.abs(params.photoWidthMm - params.photoHeightMm) > 1e-9) {
+        photoOrientations.push({ widthMm: params.photoHeightMm, heightMm: params.photoWidthMm, rotated: true });
+      }
+
+      paperOrientations.forEach((paper) => {
+        const paperWidthPx = mmToPx(paper.widthMm, params.dpi);
+        const paperHeightPx = mmToPx(paper.heightMm, params.dpi);
+        const marginPx = params.marginMm ? mmToPx(params.marginMm, params.dpi) : 0;
+        const gapPx = params.gapMm ? mmToPx(params.gapMm, params.dpi) : 0;
+        const availableWidthPx = paperWidthPx - 2 * marginPx;
+        const availableHeightPx = paperHeightPx - 2 * marginPx;
+        if (availableWidthPx <= 0 || availableHeightPx <= 0) {
+          return;
+        }
+
+        photoOrientations.forEach((photo) => {
+          const cellWidthPx = mmToPx(photo.widthMm, params.dpi);
+          const cellHeightPx = mmToPx(photo.heightMm, params.dpi);
+          const cols = Math.floor((availableWidthPx + gapPx) / (cellWidthPx + gapPx));
+          const rows = Math.floor((availableHeightPx + gapPx) / (cellHeightPx + gapPx));
+          if (cols <= 0 || rows <= 0) {
+            return;
+          }
+
+          const gridWidthPx = cols * cellWidthPx + (cols - 1) * gapPx;
+          const gridHeightPx = rows * cellHeightPx + (rows - 1) * gapPx;
+          const count = cols * rows;
+          const usedAreaRatio = (gridWidthPx * gridHeightPx) / (paperWidthPx * paperHeightPx);
+          candidates.push({
+            dpi: params.dpi,
+            target_photo_w_mm: params.photoWidthMm,
+            target_photo_h_mm: params.photoHeightMm,
+            paper_w_mm: paper.widthMm,
+            paper_h_mm: paper.heightMm,
+            requested_paper_w_mm: params.paperWidthMm,
+            requested_paper_h_mm: params.paperHeightMm,
+            margin_mm: params.marginMm,
+            gap_mm: params.gapMm,
+            photo_cell_w_px: cellWidthPx,
+            photo_cell_h_px: cellHeightPx,
+            photo_unrotated_w_px: mmToPx(params.photoWidthMm, params.dpi),
+            photo_unrotated_h_px: mmToPx(params.photoHeightMm, params.dpi),
+            paper_w_px: paperWidthPx,
+            paper_h_px: paperHeightPx,
+            margin_px: marginPx,
+            gap_px: gapPx,
+            cols,
+            rows,
+            count,
+            grid_w_px: gridWidthPx,
+            grid_h_px: gridHeightPx,
+            start_x_px: Math.floor((paperWidthPx - gridWidthPx) / 2),
+            start_y_px: Math.floor((paperHeightPx - gridHeightPx) / 2),
+            photo_rotated_on_sheet: photo.rotated,
+            paper_orientation_swapped: paper.swapped,
+            used_area_ratio: usedAreaRatio
+          });
+        });
+      });
+
+      if (!candidates.length) {
+        throw new Error('当前照片尺寸、纸张尺寸、页边距和间距无法排下任何一张证件照。');
+      }
+
+      candidates.sort((a, b) => (
+        b.count - a.count ||
+        Number(!b.photo_rotated_on_sheet) - Number(!a.photo_rotated_on_sheet) ||
+        Number(!b.paper_orientation_swapped) - Number(!a.paper_orientation_swapped) ||
+        b.used_area_ratio - a.used_area_ratio
+      ));
+      return candidates[0];
+    }
+
+    function makeCanvas(width, height) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      return canvas;
+    }
+
+    function rotateCanvas90(sourceCanvas) {
+      const canvas = makeCanvas(sourceCanvas.height, sourceCanvas.width);
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width, 0);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(sourceCanvas, 0, 0);
+      return canvas;
+    }
+
+    function drawCanvasPreview(targetCanvas, sourceCanvas) {
+      targetCanvas.width = sourceCanvas.width;
+      targetCanvas.height = sourceCanvas.height;
+      const ctx = targetCanvas.getContext('2d');
+      ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+      ctx.drawImage(sourceCanvas, 0, 0);
+    }
+
+    function buildPrintSheet(image, params) {
+      const plan = chooseLayout(params);
+      const crop = cropToAspect(
+        image,
+        params.photoWidthMm,
+        params.photoHeightMm,
+        params.anchorX,
+        params.anchorY
+      );
+
+      const croppedCanvas = makeCanvas(crop.width, crop.height);
+      const croppedCtx = croppedCanvas.getContext('2d');
+      croppedCtx.drawImage(
+        image,
+        crop.left,
+        crop.top,
+        crop.width,
+        crop.height,
+        0,
+        0,
+        crop.width,
+        crop.height
+      );
+
+      const printCanvas = makeCanvas(plan.photo_unrotated_w_px, plan.photo_unrotated_h_px);
+      const printCtx = printCanvas.getContext('2d');
+      printCtx.imageSmoothingEnabled = true;
+      printCtx.imageSmoothingQuality = 'high';
+      printCtx.drawImage(croppedCanvas, 0, 0, printCanvas.width, printCanvas.height);
+
+      const sheetPhoto = plan.photo_rotated_on_sheet ? rotateCanvas90(printCanvas) : printCanvas;
+      const sheetCanvas = makeCanvas(plan.paper_w_px, plan.paper_h_px);
+      const sheetCtx = sheetCanvas.getContext('2d');
+      sheetCtx.fillStyle = '#ffffff';
+      sheetCtx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
+
+      for (let row = 0; row < plan.rows; row += 1) {
+        for (let col = 0; col < plan.cols; col += 1) {
+          const x = plan.start_x_px + col * (plan.photo_cell_w_px + plan.gap_px);
+          const y = plan.start_y_px + row * (plan.photo_cell_h_px + plan.gap_px);
+          sheetCtx.drawImage(sheetPhoto, x, y);
+          if (params.drawCutMarks) {
+            sheetCtx.strokeStyle = 'rgb(40, 40, 40)';
+            sheetCtx.lineWidth = 1;
+            sheetCtx.strokeRect(x + 0.5, y + 0.5, plan.photo_cell_w_px - 1, plan.photo_cell_h_px - 1);
+          }
+        }
+      }
+
+      return { croppedCanvas, sheetCanvas, cropBox: crop.box, plan };
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('无法生成下载文件。'));
+          }
+        }, type, quality);
+      });
+    }
+
+    function canvasToTiffBlob(canvas, dpi) {
+      const width = canvas.width;
+      const height = canvas.height;
+      const ctx = canvas.getContext('2d');
+      const rgba = ctx.getImageData(0, 0, width, height).data;
+      const pixelByteCount = width * height * 3;
+      const entryCount = 13;
+      const ifdOffset = 8;
+      const ifdByteCount = 2 + entryCount * 12 + 4;
+      const extraDataOffset = ifdOffset + ifdByteCount;
+      const bitsPerSampleOffset = extraDataOffset;
+      const xResolutionOffset = bitsPerSampleOffset + 6;
+      const yResolutionOffset = xResolutionOffset + 8;
+      const pixelDataOffset = yResolutionOffset + 8;
+      const totalBytes = pixelDataOffset + pixelByteCount;
+      const buffer = new ArrayBuffer(totalBytes);
+      const view = new DataView(buffer);
+      const bytes = new Uint8Array(buffer);
+
+      bytes[0] = 0x49;
+      bytes[1] = 0x49;
+      view.setUint16(2, 42, true);
+      view.setUint32(4, ifdOffset, true);
+      view.setUint16(ifdOffset, entryCount, true);
+
+      const writeEntry = (index, tag, type, count, value) => {
+        const offset = ifdOffset + 2 + index * 12;
+        view.setUint16(offset, tag, true);
+        view.setUint16(offset + 2, type, true);
+        view.setUint32(offset + 4, count, true);
+        if (type === 3 && count === 1) {
+          view.setUint16(offset + 8, value, true);
+          view.setUint16(offset + 10, 0, true);
+        } else {
+          view.setUint32(offset + 8, value, true);
+        }
+      };
+
+      writeEntry(0, 256, 4, 1, width);
+      writeEntry(1, 257, 4, 1, height);
+      writeEntry(2, 258, 3, 3, bitsPerSampleOffset);
+      writeEntry(3, 259, 3, 1, 1);
+      writeEntry(4, 262, 3, 1, 2);
+      writeEntry(5, 273, 4, 1, pixelDataOffset);
+      writeEntry(6, 277, 3, 1, 3);
+      writeEntry(7, 278, 4, 1, height);
+      writeEntry(8, 279, 4, 1, pixelByteCount);
+      writeEntry(9, 282, 5, 1, xResolutionOffset);
+      writeEntry(10, 283, 5, 1, yResolutionOffset);
+      writeEntry(11, 284, 3, 1, 1);
+      writeEntry(12, 296, 3, 1, 2);
+      view.setUint32(ifdOffset + 2 + entryCount * 12, 0, true);
+
+      view.setUint16(bitsPerSampleOffset, 8, true);
+      view.setUint16(bitsPerSampleOffset + 2, 8, true);
+      view.setUint16(bitsPerSampleOffset + 4, 8, true);
+      view.setUint32(xResolutionOffset, dpi, true);
+      view.setUint32(xResolutionOffset + 4, 1, true);
+      view.setUint32(yResolutionOffset, dpi, true);
+      view.setUint32(yResolutionOffset + 4, 1, true);
+
+      let target = pixelDataOffset;
+      for (let source = 0; source < rgba.length; source += 4) {
+        bytes[target] = rgba[source];
+        bytes[target + 1] = rgba[source + 1];
+        bytes[target + 2] = rgba[source + 2];
+        target += 3;
+      }
+
+      return new Blob([buffer], { type: 'image/tiff' });
+    }
+
+    function cleanNumber(value) {
+      return Number(value).toFixed(4).replace(/\.?0+$/, '');
+    }
+
+    async function canvasToPdfBlob(canvas, plan) {
+      const imageBlob = await canvasToBlob(canvas, 'image/jpeg', 0.96);
+      const imageBytes = new Uint8Array(await imageBlob.arrayBuffer());
+      const pageWidthPt = plan.paper_w_mm / MM_PER_INCH * 72;
+      const pageHeightPt = plan.paper_h_mm / MM_PER_INCH * 72;
+      const content = `q\n${cleanNumber(pageWidthPt)} 0 0 ${cleanNumber(pageHeightPt)} 0 0 cm\n/Im0 Do\nQ\n`;
+      const parts = [];
+      const offsets = [0];
+      let position = 0;
+      const encoder = new TextEncoder();
+
+      const writeString = (text) => {
+        const bytes = encoder.encode(text);
+        parts.push(bytes);
+        position += bytes.length;
+      };
+      const writeBytes = (bytes) => {
+        parts.push(bytes);
+        position += bytes.length;
+      };
+      const beginObject = (id) => {
+        offsets[id] = position;
+        writeString(`${id} 0 obj\n`);
+      };
+      const endObject = () => {
+        writeString('\nendobj\n');
+      };
+
+      writeString('%PDF-1.4\n% static-id-photo\n');
+
+      beginObject(1);
+      writeString('<< /Type /Catalog /Pages 2 0 R >>');
+      endObject();
+
+      beginObject(2);
+      writeString('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+      endObject();
+
+      beginObject(3);
+      writeString(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${cleanNumber(pageWidthPt)} ${cleanNumber(pageHeightPt)}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+      endObject();
+
+      beginObject(4);
+      writeString(`<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`);
+      writeBytes(imageBytes);
+      writeString('\nendstream');
+      endObject();
+
+      beginObject(5);
+      writeString(`<< /Length ${encoder.encode(content).length} >>\nstream\n${content}endstream`);
+      endObject();
+
+      const xrefOffset = position;
+      writeString('xref\n0 6\n');
+      writeString('0000000000 65535 f \n');
+      for (let id = 1; id <= 5; id += 1) {
+        writeString(`${String(offsets[id]).padStart(10, '0')} 00000 n \n`);
+      }
+      writeString(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+      return new Blob(parts, { type: 'application/pdf' });
+    }
+
+    function revokeDownloadUrls() {
+      if (pngObjectUrl) {
+        URL.revokeObjectURL(pngObjectUrl);
+      }
+      if (jpgObjectUrl) {
+        URL.revokeObjectURL(jpgObjectUrl);
+      }
+      if (tiffObjectUrl) {
+        URL.revokeObjectURL(tiffObjectUrl);
+      }
+      if (pdfObjectUrl) {
+        URL.revokeObjectURL(pdfObjectUrl);
+      }
+      pngObjectUrl = null;
+      jpgObjectUrl = null;
+      tiffObjectUrl = null;
+      pdfObjectUrl = null;
+    }
+
+    function writeSummary(data) {
+      const plan = data.plan;
+      const sizeSource = data.detected
+        ? data.detected.label
+        : (photoPresetSelect.value ? `预设：${photoPresetSelect.selectedOptions[0].textContent}` : '手动输入');
+      const rows = [
+        ['原图像素', `${data.image.naturalWidth} x ${data.image.naturalHeight}`],
+        ['裁剪后像素', `${data.croppedCanvas.width} x ${data.croppedCanvas.height}`],
+        ['成品尺寸', `${formatMm(plan.target_photo_w_mm)} mm × ${formatMm(plan.target_photo_h_mm)} mm`],
+        ['尺寸来源', sizeSource],
+        ['单张打印像素', `${plan.photo_unrotated_w_px} x ${plan.photo_unrotated_h_px}`],
+        ['打印纸像素', `${plan.paper_w_px} x ${plan.paper_h_px}`],
+        ['最佳排版', `${plan.cols} x ${plan.rows}，共 ${plan.count} 张`],
+        ['输出纸张尺寸', `${formatMm(plan.paper_w_mm)} mm × ${formatMm(plan.paper_h_mm)} mm`],
+        ['纸张方向是否交换', plan.paper_orientation_swapped ? '是' : '否'],
+        ['单张照片是否旋转', plan.photo_rotated_on_sheet ? '是' : '否'],
+        ['裁剪框 px', data.cropBox.join(', ')]
+      ];
+      summaryList.innerHTML = rows.map(([key, value]) => `
+        <div class="dl-row"><dt>${key}</dt><dd>${value}</dd></div>
+      `).join('');
+    }
+
+    function readParams() {
+      const dpi = intNumber(form.elements.dpi.value, 'DPI');
+      if (dpi < 72 || dpi > 1200) {
+        throw new Error('DPI 建议设置在 72 到 1200 之间。');
+      }
+
+      const photoWidthMm = positiveNumber(photoWidthInput.value, '证件照宽度');
+      const photoHeightMm = positiveNumber(photoHeightInput.value, '证件照高度');
+      const paperWidthMm = positiveNumber(form.elements.paper_w_mm.value, '打印纸宽度');
+      const paperHeightMm = positiveNumber(form.elements.paper_h_mm.value, '打印纸高度');
+      const marginMm = nonNegativeNumber(form.elements.margin_mm.value, '页边距');
+      const gapMm = nonNegativeNumber(form.elements.gap_mm.value, '照片间距');
+
+      if (paperWidthMm <= 2 * marginMm || paperHeightMm <= 2 * marginMm) {
+        throw new Error('页边距过大，已经超过纸张可用区域。');
+      }
+
+      return {
+        photoWidthMm,
+        photoHeightMm,
+        paperWidthMm,
+        paperHeightMm,
+        dpi,
+        marginMm,
+        gapMm,
+        anchorX: Math.max(0, Math.min(1, Number(form.elements.anchor_x.value) / 100)),
+        anchorY: Math.max(0, Math.min(1, Number(form.elements.anchor_y.value) / 100)),
+        autoPaperOrientation: form.elements.auto_paper_orientation.checked,
+        allowPhotoRotation: form.elements.allow_photo_rotation.checked,
+        drawCutMarks: form.elements.draw_cut_marks.checked
+      };
+    }
+
+    photoInput.addEventListener('change', detectPhotoSizeForUpload);
+    autoSizeInput.addEventListener('change', () => {
+      if (autoSizeInput.checked) {
+        photoPresetSelect.value = '';
+      }
+      detectPhotoSizeForUpload();
+    });
+    photoPresetSelect.addEventListener('change', () => {
+      const selectedOption = photoPresetSelect.selectedOptions[0];
+      if (!photoPresetSelect.value) {
+        sizeStatus.textContent = autoSizeInput.checked ? '等待上传图片。' : '已使用自定义成品尺寸。';
+        return;
+      }
+      const [widthMm, heightMm] = photoPresetSelect.value.split(',').map(Number);
+      applySizeValues(widthMm, heightMm);
+      autoSizeInput.checked = false;
+      sizeStatus.textContent = `已选择预设：${selectedOption.textContent}`;
+    });
+    [photoWidthInput, photoHeightInput].forEach((input) => {
+      input.addEventListener('input', () => {
+        if (applyingSize) {
+          return;
+        }
+        photoPresetSelect.value = '';
+        autoSizeInput.checked = false;
+        sizeStatus.textContent = '已使用手动成品尺寸。';
+      });
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      resultEl.classList.add('hidden');
+      revokeDownloadUrls();
+      setBusy(true, '正在生成裁剪图和打印排版...');
+
+      try {
+        const file = photoInput.files[0];
+        if (!file) {
+          throw new Error('请先上传一张证件照。');
+        }
+        const { image, dpi } = await prepareImage(file);
+        const detected = autoSizeInput.checked ? detectPhotoSize(image, dpi) : null;
+        if (detected) {
+          applyDetectedSize(detected);
+        } else if (autoSizeInput.checked) {
+          sizeStatus.textContent = '未能可靠识别成品尺寸，已使用表单中的尺寸。';
+        }
+
+        const params = readParams();
+        const result = buildPrintSheet(image, params);
+        drawCanvasPreview(croppedPreview, result.croppedCanvas);
+        drawCanvasPreview(layoutPreview, result.sheetCanvas);
+
+        const [pngBlob, jpgBlob, pdfBlob] = await Promise.all([
+          canvasToBlob(result.sheetCanvas, 'image/png'),
+          canvasToBlob(result.sheetCanvas, 'image/jpeg', 0.96),
+          canvasToPdfBlob(result.sheetCanvas, result.plan)
+        ]);
+        const tiffBlob = canvasToTiffBlob(result.sheetCanvas, result.plan.dpi);
+        pngObjectUrl = URL.createObjectURL(pngBlob);
+        jpgObjectUrl = URL.createObjectURL(jpgBlob);
+        tiffObjectUrl = URL.createObjectURL(tiffBlob);
+        pdfObjectUrl = URL.createObjectURL(pdfBlob);
+        pngLink.href = pngObjectUrl;
+        jpgLink.href = jpgObjectUrl;
+        tiffLink.href = tiffObjectUrl;
+        pdfLink.href = pdfObjectUrl;
+        pngLink.download = `id_photo_sheet_${formatMm(result.plan.paper_w_mm)}x${formatMm(result.plan.paper_h_mm)}mm.png`;
+        jpgLink.download = `id_photo_sheet_${formatMm(result.plan.paper_w_mm)}x${formatMm(result.plan.paper_h_mm)}mm.jpg`;
+        tiffLink.download = `id_photo_sheet_${formatMm(result.plan.paper_w_mm)}x${formatMm(result.plan.paper_h_mm)}mm.tiff`;
+        pdfLink.download = `id_photo_sheet_${formatMm(result.plan.paper_w_mm)}x${formatMm(result.plan.paper_h_mm)}mm.pdf`;
+
+        writeSummary({ ...result, image, detected });
+        resultEl.classList.remove('hidden');
+        setBusy(false, '已生成。');
+      } catch (error) {
+        setBusy(false, error.message);
+      }
+    });
+  </script>
+</body>
+</html>
