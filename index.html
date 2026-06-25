@@ -700,6 +700,9 @@
     const photoPresetSelect = form.elements.photo_size_preset;
     const photoWidthInput = form.elements.photo_w_mm;
     const photoHeightInput = form.elements.photo_h_mm;
+    const paperPresetSelect = form.elements.paper_size_preset;
+    const paperWidthInput = form.elements.paper_w_mm;
+    const paperHeightInput = form.elements.paper_h_mm;
     const anchorXOut = document.getElementById('anchorXOut');
     const anchorYOut = document.getElementById('anchorYOut');
     const sizeStatus = document.getElementById('sizeStatus');
@@ -709,10 +712,12 @@
     const PAN_BUTTON_STEP_RATIO = 0.04;
 
     let applyingSize = false;
+    let applyingPaperSize = false;
     let currentFile = null;
     let currentImage = null;
     let currentDpi = null;
     let currentLang = 'en';
+    let currentPaperInputUnit = 'mm';
     let lastResultData = null;
     let draftImageScalePercent = 100;
     let confirmedImageScalePercent = 100;
@@ -736,6 +741,32 @@
       return t(preset.labelKey);
     }
 
+    function getPaperPresetById(id) {
+      return PAPER_SIZE_PRESETS.find((preset) => preset.id === id) || null;
+    }
+
+    function paperInputUnitForLang(lang = currentLang) {
+      return lang === 'en' ? 'in' : 'mm';
+    }
+
+    function formatPaperPresetSize(preset) {
+      const isEnglish = currentLang === 'en';
+      const isApproximate = isEnglish ? Boolean(preset.approximateIn) : Boolean(preset.approximateMm);
+      const prefix = isApproximate ? `${t('approxPrefix')} ` : '';
+      if (isEnglish) {
+        const widthIn = preset.widthIn ?? preset.widthMm / MM_PER_INCH;
+        const heightIn = preset.heightIn ?? preset.heightMm / MM_PER_INCH;
+        return `${prefix}${formatInches(widthIn)} × ${formatInches(heightIn)} in`;
+      }
+      const widthMm = preset.displayWidthMm ?? preset.widthMm;
+      const heightMm = preset.displayHeightMm ?? preset.heightMm;
+      return `${prefix}${formatMm(widthMm)} × ${formatMm(heightMm)} mm`;
+    }
+
+    function getPaperPresetLabel(preset) {
+      return `${t(preset.labelKey)} (${formatPaperPresetSize(preset)})`;
+    }
+
     function renderPresetOptions() {
       const selectedValue = photoPresetSelect.value;
       photoPresetSelect.innerHTML = '';
@@ -757,7 +788,29 @@
       }
     }
 
+    function renderPaperPresetOptions() {
+      const selectedValue = paperPresetSelect.value;
+      paperPresetSelect.innerHTML = '';
+
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = t('paperPresetCustom');
+      paperPresetSelect.appendChild(placeholder);
+
+      PAPER_SIZE_PRESETS.forEach((preset) => {
+        const option = document.createElement('option');
+        option.value = preset.id;
+        option.textContent = getPaperPresetLabel(preset);
+        paperPresetSelect.appendChild(option);
+      });
+
+      if (Array.from(paperPresetSelect.options).some((option) => option.value === selectedValue)) {
+        paperPresetSelect.value = selectedValue;
+      }
+    }
+
     function translatePage() {
+      syncPaperInputsForCurrentLanguage();
       document.documentElement.lang = currentLang;
       document.title = t('appTitle');
       document.querySelectorAll('[data-i18n]').forEach((element) => {
@@ -789,6 +842,7 @@
         button.setAttribute('aria-pressed', String(isActive));
       });
       renderPresetOptions();
+      renderPaperPresetOptions();
     }
 
     function bindRange(name, outputId) {
@@ -891,6 +945,64 @@
         return value;
       }
       return number.toFixed(1).replace(/\.0$/, '');
+    }
+
+    function formatInches(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) {
+        return value;
+      }
+      return number.toFixed(2).replace(/\.?0+$/, '');
+    }
+
+    function formatPaperInputValue(valueMm, unit = currentPaperInputUnit) {
+      return unit === 'in' ? formatInches(valueMm / MM_PER_INCH) : formatMm(valueMm);
+    }
+
+    function paperInputValueToMm(raw, unit = currentPaperInputUnit) {
+      const value = Number(raw);
+      if (!Number.isFinite(value)) {
+        return null;
+      }
+      return unit === 'in' ? value * MM_PER_INCH : value;
+    }
+
+    function setPaperInputUnitAttributes(unit) {
+      const step = unit === 'in' ? '0.01' : '0.1';
+      const min = unit === 'in' ? '0.01' : '1';
+      [paperWidthInput, paperHeightInput].forEach((input) => {
+        input.step = step;
+        input.min = min;
+      });
+    }
+
+    function syncPaperInputsForCurrentLanguage() {
+      const nextUnit = paperInputUnitForLang();
+      const widthMm = paperInputValueToMm(paperWidthInput.value, currentPaperInputUnit);
+      const heightMm = paperInputValueToMm(paperHeightInput.value, currentPaperInputUnit);
+
+      currentPaperInputUnit = nextUnit;
+      setPaperInputUnitAttributes(nextUnit);
+      if (widthMm !== null) {
+        paperWidthInput.value = formatPaperInputValue(widthMm, nextUnit);
+      }
+      if (heightMm !== null) {
+        paperHeightInput.value = formatPaperInputValue(heightMm, nextUnit);
+      }
+    }
+
+    function applyPaperSizeValues(widthMm, heightMm) {
+      applyingPaperSize = true;
+      paperWidthInput.value = formatPaperInputValue(widthMm);
+      paperHeightInput.value = formatPaperInputValue(heightMm);
+      applyingPaperSize = false;
+    }
+
+    function formatPaperSize(widthMm, heightMm) {
+      if (paperInputUnitForLang() === 'in') {
+        return `${formatInches(widthMm / MM_PER_INCH)} in × ${formatInches(heightMm / MM_PER_INCH)} in`;
+      }
+      return `${formatMm(widthMm)} mm × ${formatMm(heightMm)} mm`;
     }
 
     function mmToPx(valueMm, dpi) {
@@ -1778,7 +1890,7 @@
         [t('imageScaleSummary'), `${data.imageScalePercent || 100}%`],
         [t('paperPixels'), `${plan.paper_w_px} x ${plan.paper_h_px}`],
         [t('bestLayout'), t('copiesText', { grid: `${plan.cols} x ${plan.rows}`, count: plan.count })],
-        [t('outputPaperSize'), `${formatMm(plan.paper_w_mm)} mm × ${formatMm(plan.paper_h_mm)} mm`],
+        [t('outputPaperSize'), formatPaperSize(plan.paper_w_mm, plan.paper_h_mm)],
         [t('paperSwapped'), plan.paper_orientation_swapped ? t('yes') : t('no')],
         [t('photoRotated'), plan.photo_rotated_on_sheet ? t('yes') : t('no')],
         [t('cropBox'), data.cropBox.join(', ')]
@@ -1796,8 +1908,15 @@
 
       const photoWidthMm = positiveNumber(photoWidthInput.value, t('photoWidth'));
       const photoHeightMm = positiveNumber(photoHeightInput.value, t('photoHeight'));
-      const paperWidthMm = positiveNumber(form.elements.paper_w_mm.value, t('paperWidth'));
-      const paperHeightMm = positiveNumber(form.elements.paper_h_mm.value, t('paperHeight'));
+      const paperWidth = positiveNumber(paperWidthInput.value, t('paperWidth'));
+      const paperHeight = positiveNumber(paperHeightInput.value, t('paperHeight'));
+      const selectedPaperPreset = getPaperPresetById(paperPresetSelect.value);
+      const paperWidthMm = selectedPaperPreset
+        ? selectedPaperPreset.widthMm
+        : (currentPaperInputUnit === 'in' ? paperWidth * MM_PER_INCH : paperWidth);
+      const paperHeightMm = selectedPaperPreset
+        ? selectedPaperPreset.heightMm
+        : (currentPaperInputUnit === 'in' ? paperHeight * MM_PER_INCH : paperHeight);
       const marginMm = nonNegativeNumber(form.elements.margin_mm.value, t('margin'));
       const gapMm = nonNegativeNumber(form.elements.gap_mm.value, t('gap'));
 
@@ -2052,6 +2171,13 @@
       autoSizeInput.checked = false;
       sizeStatus.textContent = t('selectedPreset', { label: selectedOption.textContent });
     });
+    paperPresetSelect.addEventListener('change', () => {
+      const preset = getPaperPresetById(paperPresetSelect.value);
+      if (!preset) {
+        return;
+      }
+      applyPaperSizeValues(preset.widthMm, preset.heightMm);
+    });
     [photoWidthInput, photoHeightInput].forEach((input) => {
       input.addEventListener('input', () => {
         if (applyingSize) {
@@ -2060,6 +2186,14 @@
         photoPresetSelect.value = '';
         autoSizeInput.checked = false;
         sizeStatus.textContent = t('manualFinishedSize');
+      });
+    });
+    [paperWidthInput, paperHeightInput].forEach((input) => {
+      input.addEventListener('input', () => {
+        if (applyingPaperSize) {
+          return;
+        }
+        paperPresetSelect.value = '';
       });
     });
 

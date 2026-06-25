@@ -12,7 +12,7 @@ A fully static GitHub Pages tool for creating printable ID photo sheets in the b
 - Auto-detect common finished ID photo sizes, or choose from built-in presets.
 - Presets include Japan passport/My Number, US passport/visa, Mainland China passport/visa, Japan residence card, Japan driver license, Mainland China resident ID card, and more.
 - Manually enter the finished photo size when auto-detection is uncertain.
-- Set print paper size, for example postcard `100 mm x 148 mm`.
+- Choose print paper presets such as A4, A3, B5, US Letter/Legal, China 8K/16K, common R-series photo prints, and A4/A3 photo paper, or enter a custom size. English paper width/height uses inches; Chinese and Japanese use millimetres.
 - Convert millimetres to print pixels by DPI. The default output is `600 DPI`.
 - Adjust horizontal and vertical crop position with sliders.
 - Scale and drag the uploaded image inside the fixed finished photo frame in the preview, then confirm to regenerate previews and download links.
@@ -56,7 +56,8 @@ The retained `app.py` and `converter.py` files are legacy Flask backend compatib
 | Common size preset | Fills the photo width and height with a known ID photo size. |
 | Finished photo width / height | Physical size of one finished ID photo, in mm. |
 | Image size / position in frame | Adjusts how large the uploaded image appears inside the fixed finished photo frame. `100%` matches the original fill behavior, smaller values show more of the source image with white margins when needed, and larger values crop further inside the frame. Drag the single-photo preview or use the direction buttons to fine-tune position. |
-| Print paper width / height | Physical paper size, in mm. For postcard paper, use `100 x 148`. |
+| Paper size preset | Fills the print paper width and height from common office and photo paper sizes. |
+| Print paper width / height | Physical paper size. English UI uses inches; Chinese and Japanese use mm. |
 | DPI | Output resolution. Use `300` for smaller files, `600` for the default high-quality output, or higher when the source image supports it. |
 | Margin | Minimum paper margin, in mm. |
 | Photo gap | Space between adjacent photos, in mm. |
@@ -95,7 +96,7 @@ If your printer does not support borderless postcard printing, set enough margin
 ## Core Algorithm
 
 1. Try to infer the finished ID photo size from image DPI metadata or common pixel-size matches.
-2. Convert the finished photo size and paper size from `mm / 25.4 x DPI` into pixels.
+2. Convert the finished photo size and normalized paper size into pixels with `mm / 25.4 x DPI`.
 3. Fit the uploaded image into the fixed finished photo frame without non-uniform stretching.
 4. Apply the confirmed image scale inside that fixed frame.
 5. Use the horizontal and vertical position sliders to decide which source area stays visible when cropping is needed.
@@ -123,7 +124,7 @@ If your printer does not support borderless postcard printing, set enough margin
 - 自动识别常见证件照成品尺寸，也可从预设规格中一键选择。
 - 预设包含日本护照/My Number、美国护照/签证、中国大陆护照/签证、日本在留卡、日本驾照、中国大陆居民身份证等常用尺寸。
 - 识别不确定时仍可手动输入证件照成品尺寸。
-- 输入打印纸尺寸，例如 postcard `100 mm x 148 mm`。
+- 选择打印纸预设，包含 A4、A3、B5、Letter/Legal、8K/16K、常见 R 系列照片纸、A4/A3 相纸，也可自定义尺寸。中文和日语界面使用毫米，英语界面使用英寸。
 - 自动按 DPI 换算打印像素，默认 `600 DPI`。
 - 通过水平 / 垂直位置滑块调整保留区域。
 - 在预览里调整固定成品尺寸内的图像大小，确认后重新生成预览和下载链接。
@@ -166,7 +167,8 @@ http://127.0.0.1:8000
 | 常用规格预设 | 选择后会自动填写证件照宽度 / 高度，并切换为该预设尺寸。 |
 | 证件照宽度 / 高度 | 单张证件照的最终物理尺寸，单位 mm。 |
 | 固定框内图像大小 | 在预览区调整上传图像放进单张成品尺寸后的缩放比例。`100%` 等同于原来的铺满效果，调小会尽量显示更多原图并在需要时留白，调大会在固定框内进一步裁切。 |
-| 打印纸宽度 / 高度 | 打印纸物理尺寸，单位 mm。Postcard 可填 `100 x 148`。 |
+| 打印纸预设 | 从常见办公纸和照片纸尺寸中自动填写打印纸宽度 / 高度。 |
+| 打印纸宽度 / 高度 | 打印纸物理尺寸。中文和日语界面使用 mm，英语界面使用英寸。 |
 | DPI | 输出分辨率。默认 `600`。如果文件过大可改为 `300`，如果原图足够清晰且需要更高质量可继续调高。 |
 | 页边距 | 排版时保留的最小边距，单位 mm。 |
 | 照片间距 | 相邻证件照之间的间距，单位 mm。 |
@@ -198,7 +200,7 @@ http://127.0.0.1:8000
 ### 核心算法
 
 1. 在浏览器中尝试从图片 DPI 元数据或常见证件照像素规格识别成品尺寸。
-2. 根据 `mm / 25.4 x DPI` 把目标物理尺寸转换为像素。
+2. 将纸张输入统一换算为 mm，再根据 `mm / 25.4 x DPI` 把目标物理尺寸转换为像素。
 3. 将上传图像等比例放进固定单张成品画布，不做横向或纵向拉伸。
 4. 按预览中确认的图像缩放比例调整画布内图像大小。
 5. 通过水平 / 垂直位置滑块决定裁切时保留的原图区域。
@@ -226,7 +228,7 @@ http://127.0.0.1:8000
 - 一般的な証明写真サイズを自動検出、またはプリセットから選択。
 - 日本パスポート/My Number、米国パスポート/ビザ、中国大陸パスポート/ビザ、日本在留カード、日本運転免許証、中国大陸居民身分証などのプリセットを用意。
 - 自動検出が不確実な場合は、仕上がりサイズを手入力可能。
-- postcard `100 mm x 148 mm` などの印刷用紙サイズを指定可能。
+- A4、A3、B5、Letter/Legal、8K/16K、一般的な R 系列写真プリント、A4/A3 写真用紙などの用紙プリセットを選択可能。手入力にも対応。日本語と中国語 UI は mm、英語 UI は inch を使用します。
 - DPI に基づいて mm を印刷ピクセルへ変換。既定は `600 DPI`。
 - 水平 / 垂直位置スライダーで表示位置を調整。
 - プレビュー内で固定仕上がりサイズ内の画像サイズを調整し、確定後にプレビューとダウンロードリンクを再生成。
@@ -270,7 +272,8 @@ http://127.0.0.1:8000
 | よく使うサイズ | 選択した証明写真の幅 / 高さを自動入力します。 |
 | 仕上がり写真の幅 / 高さ | 1 枚の証明写真の物理サイズ。単位は mm。 |
 | 枠内の画像サイズ | 固定仕上がりフレーム内でアップロード画像をどれだけ大きく表示するかを調整します。`100%` は従来の全面表示、値を小さくするとより広い範囲を表示して必要に応じて白余白が入り、大きくするとさらにトリミングされます。 |
-| 用紙の幅 / 高さ | 印刷用紙の物理サイズ。単位は mm。Postcard は `100 x 148`。 |
+| 用紙サイズプリセット | 一般的なオフィス用紙と写真用紙から、印刷用紙の幅 / 高さを自動入力します。 |
+| 用紙の幅 / 高さ | 印刷用紙の物理サイズ。日本語と中国語 UI は mm、英語 UI は inch を使用します。 |
 | DPI | 出力解像度。既定は `600`。ファイルを小さくしたい場合は `300`、元画像が十分高解像度ならより高い値も指定できます。 |
 | 余白 | 用紙に残す最小余白。単位は mm。 |
 | 写真間隔 | 隣り合う写真の間隔。単位は mm。 |
@@ -302,7 +305,7 @@ http://127.0.0.1:8000
 ### コアアルゴリズム
 
 1. 画像の DPI メタデータ、または一般的なピクセル寸法から証明写真サイズを推定します。
-2. `mm / 25.4 x DPI` により、仕上がり写真サイズと用紙サイズをピクセルへ変換します。
+2. 用紙入力を mm に正規化し、`mm / 25.4 x DPI` により仕上がり写真サイズと用紙サイズをピクセルへ変換します。
 3. アップロード画像を固定仕上がりフレームへ縦横比を保ったまま配置します。
 4. 確定された画像スケールを固定フレーム内に適用します。
 5. 水平 / 垂直位置スライダーで、トリミング時に残す元画像範囲を決めます。
