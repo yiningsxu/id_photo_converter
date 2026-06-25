@@ -306,6 +306,15 @@ button.icon-button {
   background: white;
 }
 
+#croppedPreview {
+  cursor: grab;
+  touch-action: none;
+}
+
+#croppedPreview.is-dragging {
+  cursor: grabbing;
+}
+
 .scale-controls {
   margin-top: 16px;
   display: grid;
@@ -331,6 +340,41 @@ button.icon-button {
   grid-template-columns: 44px minmax(0, 1fr) 44px;
   gap: 10px;
   align-items: center;
+}
+
+.position-controls {
+  display: grid;
+  gap: 10px;
+  color: #384452;
+  font-size: 14px;
+}
+
+.nudge-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+#moveUpBtn {
+  grid-area: up;
+}
+
+#moveLeftBtn {
+  grid-area: left;
+}
+
+#moveRightBtn {
+  grid-area: right;
+}
+
+#moveDownBtn {
+  grid-area: down;
 }
 
 .scale-actions {

@@ -142,8 +142,18 @@
               <input type="range" id="imageScaleRange" min="50" max="150" step="1" value="100">
               <button type="button" id="scaleUpBtn" class="icon-button" aria-label="Larger" title="Larger">+</button>
             </div>
+            <div class="position-controls" role="group" aria-label="Image position in frame">
+              <span data-i18n="imagePosition">Image position</span>
+              <div class="nudge-pad">
+                <button type="button" id="moveUpBtn" class="icon-button" aria-label="Move up" title="Move up">↑</button>
+                <button type="button" id="moveLeftBtn" class="icon-button" aria-label="Move left" title="Move left">←</button>
+                <button type="button" id="moveRightBtn" class="icon-button" aria-label="Move right" title="Move right">→</button>
+                <button type="button" id="moveDownBtn" class="icon-button" aria-label="Move down" title="Move down">↓</button>
+              </div>
+            </div>
             <div class="scale-actions">
               <button type="button" id="scaleResetBtn" class="secondary" data-i18n="resetScale">Reset 100%</button>
+              <button type="button" id="positionResetBtn" class="secondary" data-i18n="resetPosition">Center</button>
               <button type="button" id="scaleConfirmBtn" data-i18n="confirmAdjustment">Confirm adjustment</button>
             </div>
           </div>
@@ -195,7 +205,13 @@
         imageScale: 'Image size in frame',
         scaleDown: 'Make image smaller',
         scaleUp: 'Make image larger',
+        imagePosition: 'Image position',
+        moveLeft: 'Move image left',
+        moveRight: 'Move image right',
+        moveUp: 'Move image up',
+        moveDown: 'Move image down',
         resetScale: 'Reset 100%',
+        resetPosition: 'Center',
         confirmAdjustment: 'Confirm adjustment',
         scalePending: 'Adjustment pending.',
         waitingUpload: 'Waiting for an uploaded image.',
@@ -290,7 +306,13 @@
         imageScale: '固定框内图像大小',
         scaleDown: '缩小图像',
         scaleUp: '放大图像',
+        imagePosition: '固定框内图像位置',
+        moveLeft: '向左移动图像',
+        moveRight: '向右移动图像',
+        moveUp: '向上移动图像',
+        moveDown: '向下移动图像',
         resetScale: '恢复 100%',
+        resetPosition: '居中',
         confirmAdjustment: '确认调整',
         scalePending: '调整待确认。',
         waitingUpload: '等待上传图片。',
@@ -385,7 +407,13 @@
         imageScale: '枠内の画像サイズ',
         scaleDown: '画像を小さく',
         scaleUp: '画像を大きく',
+        imagePosition: '枠内の画像位置',
+        moveLeft: '画像を左へ移動',
+        moveRight: '画像を右へ移動',
+        moveUp: '画像を上へ移動',
+        moveDown: '画像を下へ移動',
         resetScale: '100% に戻す',
+        resetPosition: '中央に戻す',
         confirmAdjustment: '調整を確定',
         scalePending: '調整は未確定です。',
         waitingUpload: '画像のアップロード待ちです。',
@@ -468,6 +496,11 @@
     const scaleUpBtn = document.getElementById('scaleUpBtn');
     const scaleResetBtn = document.getElementById('scaleResetBtn');
     const scaleConfirmBtn = document.getElementById('scaleConfirmBtn');
+    const moveUpBtn = document.getElementById('moveUpBtn');
+    const moveLeftBtn = document.getElementById('moveLeftBtn');
+    const moveRightBtn = document.getElementById('moveRightBtn');
+    const moveDownBtn = document.getElementById('moveDownBtn');
+    const positionResetBtn = document.getElementById('positionResetBtn');
     const pngLink = document.getElementById('pngLink');
     const jpgLink = document.getElementById('jpgLink');
     const tiffLink = document.getElementById('tiffLink');
@@ -478,10 +511,13 @@
     const photoPresetSelect = form.elements.photo_size_preset;
     const photoWidthInput = form.elements.photo_w_mm;
     const photoHeightInput = form.elements.photo_h_mm;
+    const anchorXOut = document.getElementById('anchorXOut');
+    const anchorYOut = document.getElementById('anchorYOut');
     const sizeStatus = document.getElementById('sizeStatus');
     const IMAGE_SCALE_MIN = 50;
     const IMAGE_SCALE_MAX = 150;
     const IMAGE_SCALE_STEP = 5;
+    const PAN_BUTTON_STEP_RATIO = 0.04;
 
     let applyingSize = false;
     let currentFile = null;
@@ -491,6 +527,9 @@
     let lastResultData = null;
     let draftImageScalePercent = 100;
     let confirmedImageScalePercent = 100;
+    let confirmedAnchorXPercent = 50;
+    let confirmedAnchorYPercent = 50;
+    let previewDrag = null;
     let pngObjectUrl = null;
     let jpgObjectUrl = null;
     let tiffObjectUrl = null;
@@ -543,6 +582,14 @@
       scaleDownBtn.title = t('scaleDown');
       scaleUpBtn.setAttribute('aria-label', t('scaleUp'));
       scaleUpBtn.title = t('scaleUp');
+      moveLeftBtn.setAttribute('aria-label', t('moveLeft'));
+      moveLeftBtn.title = t('moveLeft');
+      moveRightBtn.setAttribute('aria-label', t('moveRight'));
+      moveRightBtn.title = t('moveRight');
+      moveUpBtn.setAttribute('aria-label', t('moveUp'));
+      moveUpBtn.title = t('moveUp');
+      moveDownBtn.setAttribute('aria-label', t('moveDown'));
+      moveDownBtn.title = t('moveDown');
       submitBtn.textContent = submitBtn.disabled ? t('processing') : t('generatePreview');
       if (statusEl.dataset.statusKey) {
         statusEl.textContent = t(statusEl.dataset.statusKey);
@@ -560,6 +607,9 @@
       const output = document.getElementById(outputId);
       input.addEventListener('input', () => {
         output.value = input.value;
+        if (lastResultData) {
+          renderDraftPreview();
+        }
       });
     }
     bindRange('anchor_x', 'anchorXOut');
@@ -579,12 +629,33 @@
       imageScaleOut.value = String(nextValue);
     }
 
-    function hasPendingScaleAdjustment() {
-      return lastResultData && draftImageScalePercent !== confirmedImageScalePercent;
+    function getAnchorXPercent() {
+      return Math.max(0, Math.min(100, Math.round(Number(form.elements.anchor_x.value))));
     }
 
-    function updateScaleConfirmState() {
-      scaleConfirmBtn.disabled = submitBtn.disabled || !hasPendingScaleAdjustment();
+    function getAnchorYPercent() {
+      return Math.max(0, Math.min(100, Math.round(Number(form.elements.anchor_y.value))));
+    }
+
+    function setAnchorControlValues(anchorXPercent, anchorYPercent) {
+      const nextX = Math.max(0, Math.min(100, Math.round(Number(anchorXPercent))));
+      const nextY = Math.max(0, Math.min(100, Math.round(Number(anchorYPercent))));
+      form.elements.anchor_x.value = String(nextX);
+      form.elements.anchor_y.value = String(nextY);
+      anchorXOut.value = String(nextX);
+      anchorYOut.value = String(nextY);
+    }
+
+    function hasPendingPreviewAdjustment() {
+      return Boolean(lastResultData) && (
+        draftImageScalePercent !== confirmedImageScalePercent ||
+        getAnchorXPercent() !== confirmedAnchorXPercent ||
+        getAnchorYPercent() !== confirmedAnchorYPercent
+      );
+    }
+
+    function updateAdjustmentConfirmState() {
+      scaleConfirmBtn.disabled = submitBtn.disabled || !hasPendingPreviewAdjustment();
     }
 
     function setDownloadLinksAvailable(isAvailable) {
@@ -609,8 +680,11 @@
     function resetImageScaleState() {
       draftImageScalePercent = 100;
       confirmedImageScalePercent = 100;
+      confirmedAnchorXPercent = 50;
+      confirmedAnchorYPercent = 50;
+      setAnchorControlValues(50, 50);
       setImageScaleControlValue(draftImageScalePercent);
-      updateScaleConfirmState();
+      updateAdjustmentConfirmState();
       setDownloadLinksAvailable(false);
     }
 
@@ -619,7 +693,7 @@
       submitBtn.textContent = isBusy ? t('processing') : t('generatePreview');
       statusEl.textContent = message;
       statusEl.dataset.statusKey = statusKey;
-      updateScaleConfirmState();
+      updateAdjustmentConfirmState();
     }
 
     function formatMm(value) {
@@ -1584,9 +1658,9 @@
       }
     }
 
-    function renderDraftScalePreview() {
+    function renderDraftPreview() {
       if (!lastResultData) {
-        updateScaleConfirmState();
+        updateAdjustmentConfirmState();
         return;
       }
 
@@ -1603,7 +1677,7 @@
         writeSummary(nextResultData);
         lastResultData = nextResultData;
 
-        if (hasPendingScaleAdjustment()) {
+        if (hasPendingPreviewAdjustment()) {
           setDownloadLinksAvailable(false);
           setBusy(false, t('scalePending'), 'scalePending');
         } else {
@@ -1619,10 +1693,71 @@
       draftImageScalePercent = clampImageScalePercent(value);
       setImageScaleControlValue(draftImageScalePercent);
       if (renderPreview) {
-        renderDraftScalePreview();
+        renderDraftPreview();
       } else {
-        updateScaleConfirmState();
+        updateAdjustmentConfirmState();
       }
+    }
+
+    function anchorAfterImageMove(currentPercent, imageDeltaPx, drawSizePx, targetSizePx) {
+      const travelPx = Math.abs(drawSizePx - targetSizePx);
+      if (travelPx < 1) {
+        return currentPercent;
+      }
+      const direction = drawSizePx >= targetSizePx ? -1 : 1;
+      return currentPercent + (imageDeltaPx / travelPx) * 100 * direction;
+    }
+
+    function moveDraftImageByFramePixels(deltaX, deltaY) {
+      if (!lastResultData) {
+        updateAdjustmentConfirmState();
+        return;
+      }
+
+      try {
+        const params = readParams();
+        const plan = lastResultData.plan;
+        const placement = getImageFramePlacement(
+          lastResultData.image,
+          plan.photo_unrotated_w_px,
+          plan.photo_unrotated_h_px,
+          params.anchorX,
+          params.anchorY,
+          params.imageScalePercent
+        );
+        const nextAnchorX = anchorAfterImageMove(
+          getAnchorXPercent(),
+          deltaX,
+          placement.drawWidth,
+          plan.photo_unrotated_w_px
+        );
+        const nextAnchorY = anchorAfterImageMove(
+          getAnchorYPercent(),
+          deltaY,
+          placement.drawHeight,
+          plan.photo_unrotated_h_px
+        );
+        setAnchorControlValues(nextAnchorX, nextAnchorY);
+        renderDraftPreview();
+      } catch (error) {
+        setBusy(false, error.message);
+      }
+    }
+
+    function nudgeDraftImage(deltaXRatio, deltaYRatio) {
+      if (!lastResultData) {
+        updateAdjustmentConfirmState();
+        return;
+      }
+      moveDraftImageByFramePixels(
+        lastResultData.plan.photo_unrotated_w_px * deltaXRatio,
+        lastResultData.plan.photo_unrotated_h_px * deltaYRatio
+      );
+    }
+
+    function resetDraftPosition() {
+      setAnchorControlValues(50, 50);
+      renderDraftPreview();
     }
 
     languageButtons.forEach((button) => {
@@ -1648,9 +1783,61 @@
     imageScaleRange.addEventListener('input', () => {
       setDraftImageScale(imageScaleRange.value);
     });
+    moveLeftBtn.addEventListener('click', () => {
+      nudgeDraftImage(-PAN_BUTTON_STEP_RATIO, 0);
+    });
+    moveRightBtn.addEventListener('click', () => {
+      nudgeDraftImage(PAN_BUTTON_STEP_RATIO, 0);
+    });
+    moveUpBtn.addEventListener('click', () => {
+      nudgeDraftImage(0, -PAN_BUTTON_STEP_RATIO);
+    });
+    moveDownBtn.addEventListener('click', () => {
+      nudgeDraftImage(0, PAN_BUTTON_STEP_RATIO);
+    });
+    positionResetBtn.addEventListener('click', resetDraftPosition);
     scaleConfirmBtn.addEventListener('click', () => {
       form.requestSubmit();
     });
+
+    croppedPreview.addEventListener('pointerdown', (event) => {
+      if (!lastResultData) {
+        return;
+      }
+      previewDrag = {
+        pointerId: event.pointerId,
+        clientX: event.clientX,
+        clientY: event.clientY
+      };
+      croppedPreview.setPointerCapture?.(event.pointerId);
+      croppedPreview.classList.add('is-dragging');
+      event.preventDefault();
+    });
+    croppedPreview.addEventListener('pointermove', (event) => {
+      if (!previewDrag || previewDrag.pointerId !== event.pointerId || !lastResultData) {
+        return;
+      }
+      const rect = croppedPreview.getBoundingClientRect();
+      if (!rect.width || !rect.height) {
+        return;
+      }
+      const deltaX = (event.clientX - previewDrag.clientX) * (lastResultData.printCanvas.width / rect.width);
+      const deltaY = (event.clientY - previewDrag.clientY) * (lastResultData.printCanvas.height / rect.height);
+      previewDrag.clientX = event.clientX;
+      previewDrag.clientY = event.clientY;
+      moveDraftImageByFramePixels(deltaX, deltaY);
+      event.preventDefault();
+    });
+    const endPreviewDrag = (event) => {
+      if (!previewDrag || previewDrag.pointerId !== event.pointerId) {
+        return;
+      }
+      croppedPreview.releasePointerCapture?.(event.pointerId);
+      croppedPreview.classList.remove('is-dragging');
+      previewDrag = null;
+    };
+    croppedPreview.addEventListener('pointerup', endPreviewDrag);
+    croppedPreview.addEventListener('pointercancel', endPreviewDrag);
 
     photoInput.addEventListener('change', () => {
       lastResultData = null;
@@ -1733,6 +1920,8 @@
         writeSummary({ ...result, image, detected });
         lastResultData = { ...result, image, detected };
         confirmedImageScalePercent = draftImageScalePercent;
+        confirmedAnchorXPercent = getAnchorXPercent();
+        confirmedAnchorYPercent = getAnchorYPercent();
         setImageScaleControlValue(draftImageScalePercent);
         resultEl.classList.remove('hidden');
         setDownloadLinksAvailable(true);
