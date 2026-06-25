@@ -1,142 +1,144 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>证件照打印排版转换器</title>
+  <title>ID Photo Print Layout Converter</title>
   <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
   <main class="shell">
     <section class="hero">
       <div>
-        <h1>证件照打印排版转换器</h1>
-        <p>上传一张证件照，在浏览器里自动识别或选择成品尺寸，完成裁剪、排版，并下载可打印 PNG、JPG/JPEG、TIFF、PDF。所有处理都在浏览器本地完成。下载 PDF 后请使用“实际大小 / 100%”打印。</p>
+        <h1 data-i18n="appTitle">ID Photo Print Layout Converter</h1>
+        <p data-i18n="heroTip">Upload an ID photo, auto-detect or choose the finished size, crop and lay it out in your browser, then download printable PNG, JPG/JPEG, TIFF, or PDF files. All processing stays local in your browser. When printing the PDF, choose “Actual size / 100%”.</p>
+        <label class="field language-field">
+          <span data-i18n="languageLabel">Language</span>
+          <select id="languageSelect" aria-label="Language">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+          </select>
+        </label>
       </div>
     </section>
 
     <form id="converterForm" class="panel">
       <div class="grid two">
         <label class="field wide">
-          <span>上传证件照</span>
+          <span data-i18n="uploadPhoto">Upload ID photo</span>
           <input
             type="file"
             name="photo"
             accept=".jpg,.jpeg,.jpe,image/jpeg,.png,image/png,.webp,image/webp,.bmp,image/bmp,.tif,.tiff,image/tiff,.gif,image/gif,.heic,.heif,image/heic,image/heif"
             required
           >
-          <span class="field-note">支持浏览器可解码的 JPEG/JPG、PNG、WebP、BMP、TIFF、GIF、HEIC/HEIF。</span>
+          <span class="field-note" data-i18n="formatSupport">Supports browser-decodable JPEG/JPG, PNG, WebP, BMP, TIFF, GIF, and HEIC/HEIF.</span>
         </label>
 
         <fieldset>
-          <legend>证件照成品尺寸</legend>
+          <legend data-i18n="finishedSize">Finished photo size</legend>
           <label class="inline-check">
             <input type="checkbox" name="auto_detect_photo_size" checked>
-            自动识别上传图尺寸
+            <span data-i18n="autoDetect">Auto-detect uploaded photo size</span>
           </label>
           <label class="field preset-field">
-            <span>常用规格预设</span>
+            <span data-i18n="presetLabel">Common size preset</span>
             <select name="photo_size_preset">
-              <option value="">自动识别 / 自定义输入</option>
-              <option value="35,45">35x45 mm - 日本护照/My Number、韩国护照/居民登记证、台湾护照/身分证、法国/德国/意大利等多数欧洲证件</option>
-              <option value="51,51">51x51 mm - 美国护照/签证/DV/USCIS常见照片</option>
-              <option value="33,48">33x48 mm - 中国大陆护照/旅行证/中国签证</option>
-              <option value="30,40">30x40 mm - 日本在留卡/入管提交照</option>
-              <option value="24,30">24x30 mm - 日本驾照</option>
-              <option value="26,32">26x32 mm - 中国大陆居民身份证、西班牙DNI/护照常用竖版</option>
+              <option value="">Auto-detect / custom input</option>
             </select>
           </label>
           <div class="row">
             <label class="field">
-              <span>宽度 mm</span>
+              <span data-i18n="widthMm">Width mm</span>
               <input type="number" name="photo_w_mm" min="1" step="0.1" value="35" required>
             </label>
             <label class="field">
-              <span>高度 mm</span>
+              <span data-i18n="heightMm">Height mm</span>
               <input type="number" name="photo_h_mm" min="1" step="0.1" value="45" required>
             </label>
           </div>
-          <p id="sizeStatus" class="field-note">等待上传图片。</p>
+          <p id="sizeStatus" class="field-note">Waiting for an uploaded image.</p>
         </fieldset>
 
         <fieldset>
-          <legend>打印纸尺寸</legend>
+          <legend data-i18n="paperSize">Print paper size</legend>
           <div class="row">
             <label class="field">
-              <span>宽度 mm</span>
+              <span data-i18n="widthMm">Width mm</span>
               <input type="number" name="paper_w_mm" min="1" step="0.1" value="100" required>
             </label>
             <label class="field">
-              <span>高度 mm</span>
+              <span data-i18n="heightMm">Height mm</span>
               <input type="number" name="paper_h_mm" min="1" step="0.1" value="148" required>
             </label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>打印参数</legend>
+          <legend data-i18n="printSettings">Print settings</legend>
           <div class="row three">
             <label class="field">
               <span>DPI</span>
-              <input type="number" name="dpi" min="72" max="1200" step="1" value="300" required>
+              <input type="number" name="dpi" min="72" max="1200" step="1" value="600" required>
             </label>
             <label class="field">
-              <span>页边距 mm</span>
+              <span data-i18n="marginMm">Margin mm</span>
               <input type="number" name="margin_mm" min="0" step="0.1" value="3" required>
             </label>
             <label class="field">
-              <span>照片间距 mm</span>
+              <span data-i18n="gapMm">Photo gap mm</span>
               <input type="number" name="gap_mm" min="0" step="0.1" value="2" required>
             </label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>裁剪位置</legend>
+          <legend data-i18n="cropPosition">Crop position</legend>
           <label class="field range-field">
-            <span>水平裁剪中心 <output id="anchorXOut">50</output>%</span>
+            <span><span data-i18n="anchorX">Horizontal crop center</span> <output id="anchorXOut">50</output>%</span>
             <input type="range" name="anchor_x" min="0" max="100" value="50">
           </label>
           <label class="field range-field">
-            <span>垂直裁剪中心 <output id="anchorYOut">50</output>%</span>
+            <span><span data-i18n="anchorY">Vertical crop center</span> <output id="anchorYOut">50</output>%</span>
             <input type="range" name="anchor_y" min="0" max="100" value="50">
           </label>
         </fieldset>
 
         <fieldset class="wide options">
-          <legend>排版选项</legend>
-          <label><input type="checkbox" name="auto_paper_orientation" checked> 自动选择纸张横竖方向</label>
-          <label><input type="checkbox" name="allow_photo_rotation"> 允许单张证件照在纸上旋转 90° 以容纳更多张</label>
-          <label><input type="checkbox" name="draw_cut_marks" checked> 显示裁切边框</label>
+          <legend data-i18n="layoutOptions">Layout options</legend>
+          <label><input type="checkbox" name="auto_paper_orientation" checked> <span data-i18n="autoPaperOrientation">Auto-select paper orientation</span></label>
+          <label><input type="checkbox" name="allow_photo_rotation"> <span data-i18n="allowPhotoRotation">Allow each ID photo to rotate 90° on the sheet to fit more copies</span></label>
+          <label><input type="checkbox" name="draw_cut_marks" checked> <span data-i18n="drawCutMarks">Show cut border</span></label>
         </fieldset>
       </div>
 
       <div class="actions">
-        <button type="submit" id="submitBtn">生成预览</button>
+        <button type="submit" id="submitBtn">Generate preview</button>
         <span id="status" role="status"></span>
       </div>
     </form>
 
     <section id="result" class="result hidden">
       <div class="panel summary">
-        <h2>排版结果</h2>
+        <h2 data-i18n="layoutResult">Layout result</h2>
         <dl id="summaryList"></dl>
         <div class="download-row">
-          <a id="pngLink" class="button secondary" href="#" download="id_photo_sheet.png">下载 PNG</a>
-          <a id="jpgLink" class="button secondary" href="#" download="id_photo_sheet.jpg">下载 JPG/JPEG</a>
-          <a id="tiffLink" class="button secondary" href="#" download="id_photo_sheet.tiff">下载 TIFF</a>
-          <a id="pdfLink" class="button" href="#" download="id_photo_sheet.pdf">下载 PDF</a>
+          <a id="pngLink" class="button secondary" href="#" download="id_photo_sheet.png" data-i18n="downloadPng">Download PNG</a>
+          <a id="jpgLink" class="button secondary" href="#" download="id_photo_sheet.jpg" data-i18n="downloadJpg">Download JPG/JPEG</a>
+          <a id="tiffLink" class="button secondary" href="#" download="id_photo_sheet.tiff" data-i18n="downloadTiff">Download TIFF</a>
+          <a id="pdfLink" class="button" href="#" download="id_photo_sheet.pdf" data-i18n="downloadPdf">Download PDF</a>
         </div>
       </div>
 
       <div class="preview-grid">
         <article class="panel preview-card">
-          <h2>裁剪后证件照预览</h2>
-          <canvas id="croppedPreview" aria-label="裁剪后的证件照预览"></canvas>
+          <h2 data-i18n="croppedPreviewTitle">Cropped ID photo preview</h2>
+          <canvas id="croppedPreview" aria-label="Cropped ID photo preview"></canvas>
         </article>
         <article class="panel preview-card">
-          <h2>打印纸排版预览</h2>
-          <canvas id="layoutPreview" aria-label="打印纸排版预览"></canvas>
+          <h2 data-i18n="layoutPreviewTitle">Print sheet layout preview</h2>
+          <canvas id="layoutPreview" aria-label="Print sheet layout preview"></canvas>
         </article>
       </div>
     </section>
@@ -793,6 +795,36 @@
       ctx.drawImage(sourceCanvas, 0, 0);
     }
 
+    function resizeCanvasHighQuality(sourceCanvas, targetWidth, targetHeight) {
+      if (sourceCanvas.width === targetWidth && sourceCanvas.height === targetHeight) {
+        return sourceCanvas;
+      }
+
+      let currentCanvas = sourceCanvas;
+      let currentWidth = sourceCanvas.width;
+      let currentHeight = sourceCanvas.height;
+
+      while (currentWidth > targetWidth * 2 && currentHeight > targetHeight * 2) {
+        const nextWidth = Math.max(targetWidth, Math.round(currentWidth / 2));
+        const nextHeight = Math.max(targetHeight, Math.round(currentHeight / 2));
+        const nextCanvas = makeCanvas(nextWidth, nextHeight);
+        const nextCtx = nextCanvas.getContext('2d');
+        nextCtx.imageSmoothingEnabled = true;
+        nextCtx.imageSmoothingQuality = 'high';
+        nextCtx.drawImage(currentCanvas, 0, 0, nextWidth, nextHeight);
+        currentCanvas = nextCanvas;
+        currentWidth = nextWidth;
+        currentHeight = nextHeight;
+      }
+
+      const finalCanvas = makeCanvas(targetWidth, targetHeight);
+      const finalCtx = finalCanvas.getContext('2d');
+      finalCtx.imageSmoothingEnabled = true;
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+      return finalCanvas;
+    }
+
     function buildPrintSheet(image, params) {
       const plan = chooseLayout(params);
       const crop = cropToAspect(
@@ -817,11 +849,11 @@
         crop.height
       );
 
-      const printCanvas = makeCanvas(plan.photo_unrotated_w_px, plan.photo_unrotated_h_px);
-      const printCtx = printCanvas.getContext('2d');
-      printCtx.imageSmoothingEnabled = true;
-      printCtx.imageSmoothingQuality = 'high';
-      printCtx.drawImage(croppedCanvas, 0, 0, printCanvas.width, printCanvas.height);
+      const printCanvas = resizeCanvasHighQuality(
+        croppedCanvas,
+        plan.photo_unrotated_w_px,
+        plan.photo_unrotated_h_px
+      );
 
       const sheetPhoto = plan.photo_rotated_on_sheet ? rotateCanvas90(printCanvas) : printCanvas;
       const sheetCanvas = makeCanvas(plan.paper_w_px, plan.paper_h_px);
@@ -860,8 +892,7 @@
     function canvasToTiffBlob(canvas, dpi) {
       const width = canvas.width;
       const height = canvas.height;
-      const ctx = canvas.getContext('2d');
-      const rgba = ctx.getImageData(0, 0, width, height).data;
+      const rgbBytes = canvasToRgbBytes(canvas);
       const pixelByteCount = width * height * 3;
       const entryCount = 13;
       const ifdOffset = 8;
@@ -918,15 +949,23 @@
       view.setUint32(yResolutionOffset, dpi, true);
       view.setUint32(yResolutionOffset + 4, 1, true);
 
-      let target = pixelDataOffset;
-      for (let source = 0; source < rgba.length; source += 4) {
-        bytes[target] = rgba[source];
-        bytes[target + 1] = rgba[source + 1];
-        bytes[target + 2] = rgba[source + 2];
-        target += 3;
-      }
+      bytes.set(rgbBytes, pixelDataOffset);
 
       return new Blob([buffer], { type: 'image/tiff' });
+    }
+
+    function canvasToRgbBytes(canvas) {
+      const ctx = canvas.getContext('2d');
+      const rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const rgb = new Uint8Array(canvas.width * canvas.height * 3);
+      let target = 0;
+      for (let source = 0; source < rgba.length; source += 4) {
+        rgb[target] = rgba[source];
+        rgb[target + 1] = rgba[source + 1];
+        rgb[target + 2] = rgba[source + 2];
+        target += 3;
+      }
+      return rgb;
     }
 
     function cleanNumber(value) {
@@ -934,8 +973,7 @@
     }
 
     async function canvasToPdfBlob(canvas, plan) {
-      const imageBlob = await canvasToBlob(canvas, 'image/jpeg', 0.96);
-      const imageBytes = new Uint8Array(await imageBlob.arrayBuffer());
+      const imageBytes = canvasToRgbBytes(canvas);
       const pageWidthPt = plan.paper_w_mm / MM_PER_INCH * 72;
       const pageHeightPt = plan.paper_h_mm / MM_PER_INCH * 72;
       const content = `q\n${cleanNumber(pageWidthPt)} 0 0 ${cleanNumber(pageHeightPt)} 0 0 cm\n/Im0 Do\nQ\n`;
@@ -976,7 +1014,7 @@
       endObject();
 
       beginObject(4);
-      writeString(`<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`);
+      writeString(`<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Length ${imageBytes.length} >>\nstream\n`);
       writeBytes(imageBytes);
       writeString('\nendstream');
       endObject();
@@ -1024,6 +1062,7 @@
         ['裁剪后像素', `${data.croppedCanvas.width} x ${data.croppedCanvas.height}`],
         ['成品尺寸', `${formatMm(plan.target_photo_w_mm)} mm × ${formatMm(plan.target_photo_h_mm)} mm`],
         ['尺寸来源', sizeSource],
+        ['输出 DPI', plan.dpi],
         ['单张打印像素', `${plan.photo_unrotated_w_px} x ${plan.photo_unrotated_h_px}`],
         ['打印纸像素', `${plan.paper_w_px} x ${plan.paper_h_px}`],
         ['最佳排版', `${plan.cols} x ${plan.rows}，共 ${plan.count} 张`],
@@ -1125,7 +1164,7 @@
 
         const [pngBlob, jpgBlob, pdfBlob] = await Promise.all([
           canvasToBlob(result.sheetCanvas, 'image/png'),
-          canvasToBlob(result.sheetCanvas, 'image/jpeg', 0.96),
+          canvasToBlob(result.sheetCanvas, 'image/jpeg', 1.0),
           canvasToPdfBlob(result.sheetCanvas, result.plan)
         ]);
         const tiffBlob = canvasToTiffBlob(result.sheetCanvas, result.plan.dpi);
