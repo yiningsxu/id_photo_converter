@@ -1,4 +1,4 @@
-[https://yiningsxu.github.io/id_photo_converter/](https://yiningsxu.github.io/id_photo_converter/)
+[即刻使用/Use now/今すぐ使う](https://yiningsxu.github.io/id_photo_converter/)
 
 # ID Photo Print Layout Converter
 
